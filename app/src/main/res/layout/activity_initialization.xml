@@ -18,7 +18,7 @@
         android:textColor="@android:color/holo_orange_dark"
         android:typeface="sans"
         android:fontFamily="sans-serif-thin"
-        android:textSize="110px" />
+        android:textSize="60dp" />
 
     <TextView
         android:layout_width="match_parent"
@@ -37,7 +37,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Please wait a few minutes."
+        android:text="This process might take a few minutes."
         android:id="@+id/textView3"
         android:layout_gravity="center_horizontal|bottom"
         android:layout_marginBottom="20dp"
