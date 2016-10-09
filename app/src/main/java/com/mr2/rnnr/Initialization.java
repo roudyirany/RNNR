@@ -79,24 +79,16 @@ public class Initialization extends AppCompatActivity {
         //Progress bar
         final ProgressBar Progress = (ProgressBar) findViewById (R.id.progressBar);
         Progress.setProgress(0);
-        Progress.setMax(100);
+        Progress.setMax(200);
 
-        CountDownTimer mCountDownTimer=new CountDownTimer(12000,100) {
-            int i =0;
-            @Override
-            public void onTick(long millisUntilFinished) {
-                i++;
-                Progress.setProgress(i);
-            }
-
-            @Override
-            public void onFinish() {
-                //Do what you want
-                i++;
-                Progress.setProgress(i);
-            }
-        };
-        mCountDownTimer.start();
+        int bpm = (int)AnalyzeBPM("src/main/assets/photomaton.mp3");
+        Progress.setProgress(bpm);
 
     }
+
+    static{
+        System.loadLibrary("bpm_analyzer");
+    }
+
+    public native float AnalyzeBPM(String songPath);
 }

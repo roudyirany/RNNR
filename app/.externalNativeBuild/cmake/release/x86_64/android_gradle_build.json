@@ -1,0 +1,46 @@
+
+{
+	"buildFiles" : [ "/Users/roudyirany/Documents/RNNR/app/CMakeLists.txt" ],
+	"cleanCommands" : 
+	[
+		"/Users/roudyirany/Library/Android/sdk/cmake/3.6.3155560/bin/cmake --build /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/x86_64 --target clean"
+	],
+	"cppFileExtensions" : [ "cpp" ],
+	"libraries" : 
+	{
+		"bpm_analyzer-Release-x86_64" : 
+		{
+			"abi" : "x86_64",
+			"artifactName" : "bpm_analyzer",
+			"buildCommand" : "/Users/roudyirany/Library/Android/sdk/cmake/3.6.3155560/bin/cmake --build /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/x86_64 --target bpm_analyzer",
+			"buildType" : "release",
+			"files" : 
+			[
+				
+				{
+					"flags" : "  -target x86_64-none-linux-android -gcc-toolchain /Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/x86_64-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86_64  -Dbpm_analyzer_EXPORTS -I../../../../src/main/cpp/include -isystem /Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86_64/include -isystem /Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -Wa,--noexecstack -Wformat -Werror=format-security -fno-exceptions -fno-rtti  -O2 -DNDEBUG  -fPIC    -c ",
+					"src" : "/Users/roudyirany/Documents/RNNR/app/src/main/jni/bpm-analyzer.cpp",
+					"workingDirectory" : "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/x86_64"
+				}
+			],
+			"output" : "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/obj/x86_64/libbpm_analyzer.so",
+			"toolchain" : "14144572633004609567"
+		},
+		"superpowered-Release-x86_64" : 
+		{
+			"abi" : "x86_64",
+			"artifactName" : "superpowered",
+			"buildType" : "release",
+			"output" : "src/main/cpp/libs/x86_64/Superpowered.a",
+			"toolchain" : "14144572633004609567"
+		}
+	},
+	"toolchains" : 
+	{
+		"14144572633004609567" : 
+		{
+			"cCompilerExecutable" : "/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang",
+			"cppCompilerExecutable" : "/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+		}
+	}
+}

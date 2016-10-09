@@ -1,0 +1,46 @@
+
+{
+	"buildFiles" : [ "/Users/roudyirany/Documents/RNNR/app/CMakeLists.txt" ],
+	"cleanCommands" : 
+	[
+		"/Users/roudyirany/Library/Android/sdk/cmake/3.6.3155560/bin/cmake --build /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/debug/mips --target clean"
+	],
+	"cppFileExtensions" : [ "cpp" ],
+	"libraries" : 
+	{
+		"bpm_analyzer-Debug-mips" : 
+		{
+			"abi" : "mips",
+			"artifactName" : "bpm_analyzer",
+			"buildCommand" : "/Users/roudyirany/Library/Android/sdk/cmake/3.6.3155560/bin/cmake --build /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/debug/mips --target bpm_analyzer",
+			"buildType" : "debug",
+			"files" : 
+			[
+				
+				{
+					"flags" : "  -target mipsel-none-linux-android -gcc-toolchain /Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/mipsel-linux-android-4.9/prebuilt/darwin-x86_64 --sysroot=/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-16/arch-mips  -Dbpm_analyzer_EXPORTS -I../../../../src/main/cpp/include -isystem /Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include -isystem /Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/mips/include -isystem /Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward  -g -DANDROID -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -mips32 -Wa,--noexecstack -Wformat -Werror=format-security -fno-exceptions -fno-rtti  -O0 -fno-limit-debug-info  -fPIC    -c ",
+					"src" : "/Users/roudyirany/Documents/RNNR/app/src/main/jni/bpm-analyzer.cpp",
+					"workingDirectory" : "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/debug/mips"
+				}
+			],
+			"output" : "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/debug/obj/mips/libbpm_analyzer.so",
+			"toolchain" : "14144572633004609567"
+		},
+		"superpowered-Debug-mips" : 
+		{
+			"abi" : "mips",
+			"artifactName" : "superpowered",
+			"buildType" : "debug",
+			"output" : "src/main/cpp/libs/libSuperpoweredAndroidARM.a",
+			"toolchain" : "14144572633004609567"
+		}
+	},
+	"toolchains" : 
+	{
+		"14144572633004609567" : 
+		{
+			"cCompilerExecutable" : "/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang",
+			"cppCompilerExecutable" : "/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+		}
+	}
+}

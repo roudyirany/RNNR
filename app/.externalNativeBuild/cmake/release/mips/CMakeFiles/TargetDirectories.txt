@@ -1,0 +1,3 @@
+/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/mips/CMakeFiles/edit_cache.dir
+/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/mips/CMakeFiles/rebuild_cache.dir
+/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/cmake/release/mips/CMakeFiles/bpm_analyzer.dir

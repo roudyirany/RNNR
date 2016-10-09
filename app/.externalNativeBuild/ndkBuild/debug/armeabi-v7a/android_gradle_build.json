@@ -1,0 +1,32 @@
+{
+  "buildFiles": [
+    "/Users/roudyirany/Documents/RNNR/app/Android.mk"
+  ],
+  "cleanCommands": [
+    "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk APP_ABI\u003darmeabi-v7a NDK_ALL_ABIS\u003darmeabi-v7a NDEBUG\u003d1 APP_PLATFORM\u003dandroid-16 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/debug/lib clean"
+  ],
+  "libraries": {
+    "bpm_analyzer-debug-armeabi-v7a": {
+      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk APP_ABI\u003darmeabi-v7a NDK_ALL_ABIS\u003darmeabi-v7a NDEBUG\u003d1 APP_PLATFORM\u003dandroid-16 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/debug/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj/local/armeabi-v7a/libbpm_analyzer.so",
+      "toolchain": "toolchain-armeabi-v7a",
+      "abi": "armeabi-v7a",
+      "artifactName": "bpm_analyzer",
+      "files": [
+        {
+          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/jni/bpm-analyzer.cpp",
+          "flags": "\"-gcc-toolchain\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/arm-linux-androideabi-4.9/prebuilt/darwin-x86_64\" \"-fpic\" \"-ffunction-sections\" \"-funwind-tables\" \"-fstack-protector-strong\" \"-Wno-invalid-command-line-argument\" \"-Wno-unused-command-line-argument\" \"-no-canonical-prefixes\" \"-fno-integrated-as\" \"-g\" \"-target\" \"armv7-none-linux-androideabi\" \"-march\u003darmv7-a\" \"-mfloat-abi\u003dsoftfp\" \"-mfpu\u003dvfpv3-d16\" \"-fno-exceptions\" \"-fno-rtti\" \"-mthumb\" \"-Os\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/system/include\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-16/arch-arm/usr/include\""
+        }
+      ],
+      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj/local/armeabi-v7a/libbpm_analyzer.so"
+    }
+  },
+  "toolchains": {
+    "toolchain-armeabi-v7a": {
+      "cppCompilerExecutable": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/llvm/prebuilt/darwin-x86_64/bin/clang++"
+    }
+  },
+  "cFileExtensions": [],
+  "cppFileExtensions": [
+    "cpp"
+  ]
+}
