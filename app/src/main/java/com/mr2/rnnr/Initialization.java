@@ -52,7 +52,7 @@ public class Initialization extends AppCompatActivity {
             return;
         }
 
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid());
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid()+"/library");
 
         //Fade in, fade out animation
         final TextView TextView3 = (TextView)findViewById(R.id.textView3);
