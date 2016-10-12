@@ -1,10 +1,10 @@
 package com.mr2.rnnr;
 
 import android.content.Intent;
-import android.os.CountDownTimer;
+import android.os.AsyncTask;
+import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
@@ -12,6 +12,9 @@ import android.widget.TextView;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
+import java.util.HashMap;
+import java.util.Map;
+
 import android.net.Uri;
 import android.content.ContentResolver;
 import android.database.Cursor;
@@ -19,19 +22,25 @@ import android.database.Cursor;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
-
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class Initialization extends AppCompatActivity {
+    ProgressBar Progress;
     private ArrayList<Song> songList;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
 
+    private DatabaseReference mFirebaseDatabaseReference;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initialization);
+
+        Progress = (ProgressBar) findViewById (R.id.progressBar);
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -42,6 +51,8 @@ public class Initialization extends AppCompatActivity {
             finish();
             return;
         }
+
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid());
 
         //Fade in, fade out animation
         final TextView TextView3 = (TextView)findViewById(R.id.textView3);
@@ -94,21 +105,11 @@ public class Initialization extends AppCompatActivity {
         });
 
         //Progress bar
-        final ProgressBar Progress = (ProgressBar) findViewById (R.id.progressBar);
         Progress.setProgress(0);
-        Progress.setMax(200);
-
-        int bpm = (int)AnalyzeBPM(songList.get(0).getPath());
-        Log.d("bpm", "bpm: "+bpm);
-        Log.d("title", "title: "+songList.get(0).getTitle());
+        Progress.setMax(100);
+        new MyAsyncTask().execute(songList);
 
     }
-
-    static{
-        System.loadLibrary("bpm_analyzer");
-    }
-
-    public native float AnalyzeBPM(String songPath);
 
     public void getSongList() {
         //retrieve song info
@@ -136,4 +137,42 @@ public class Initialization extends AppCompatActivity {
             while (musicCursor.moveToNext());
         }
     }
+
+    //Background song processing thread
+    class MyAsyncTask extends AsyncTask<ArrayList<Song>, Integer, Void> {
+
+        protected Void doInBackground(ArrayList<Song>... list)
+        {
+            //implement background tasks
+            ArrayList<Song> songList = list[0];
+            int size = songList.size();
+
+            for(int i=0; i<size; i++)
+            {
+                songList.get(i).setBpm((int)AnalyzeBPM(songList.get(i).getPath()));
+                mFirebaseDatabaseReference.push().setValue(songList.get(i));
+                publishProgress((100*(i+1))/(2*size));
+            }
+
+            return null;
+        }
+
+        protected void onProgressUpdate(Integer... values) {
+            // Executes whenever publishProgress is called from doInBackground
+            // Used to update the progress indicator
+            Progress.setProgress(values[0]);
+        }
+
+
+    }
+
+
+    static{
+        System.loadLibrary("bpm_analyzer");
+    }
+
+    public native float AnalyzeBPM(String songPath);
 }
+
+
+
