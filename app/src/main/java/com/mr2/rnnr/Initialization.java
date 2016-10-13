@@ -26,9 +26,13 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
+
 public class Initialization extends AppCompatActivity {
     ProgressBar Progress;
     private ArrayList<Song> songList;
+    private int size;
+    private int processed=0;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -57,6 +61,7 @@ public class Initialization extends AppCompatActivity {
 
         songList = new ArrayList<Song>();
         getSongList();
+        size = songList.size();
 
         Collections.sort(songList, new Comparator<Song>(){
             public int compare(Song a, Song b){
@@ -109,26 +114,57 @@ public class Initialization extends AppCompatActivity {
         //Progress bar
         Progress.setProgress(0);
         Progress.setMax(100);
-        new MyAsyncTask().execute(songList);
+
+        int j=0;
+        while((j+4)<size)
+        {
+                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
+                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 2));
+                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 3));
+                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 4));
+                j = j + 5;
+        }
+
+        if(size % j == 4)
+        {
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 2));
+        }
+
+        else if(size % j == 3)
+        {
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
+        }
+
+        else if(size % j == 2)
+        {
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+        }
+
+        else
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
 
     }
 
 
     //Background song processing thread
-    class MyAsyncTask extends AsyncTask<ArrayList<Song>, Integer, Void> {
+    class MyAsyncTask extends AsyncTask<Song, Integer, Void> {
 
-        protected Void doInBackground(ArrayList<Song>... list)
+        protected Void doInBackground(Song... songs)
         {
             //implement background tasks
-            ArrayList<Song> songList = list[0];
-            int size = songList.size();
+            Song song = songs[0];
 
-            for(int i=0; i<size; i++)
-            {
-                songList.get(i).setBpm((int)AnalyzeBPM(songList.get(i).getPath()));
-                mFirebaseDatabaseReference.push().setValue(songList.get(i));
-                publishProgress((100*(i+1))/(size));
-            }
+            song.setBpm((int)AnalyzeBPM(song.getPath()));
+            mFirebaseDatabaseReference.push().setValue(song);
+            processed++;
+            publishProgress((100*(processed))/(size));
 
             return null;
         }
