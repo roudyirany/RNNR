@@ -5,6 +5,7 @@ import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
 import android.widget.ProgressBar;
@@ -54,6 +55,15 @@ public class Initialization extends AppCompatActivity {
 
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid()+"/library");
 
+        songList = new ArrayList<Song>();
+        getSongList();
+
+        Collections.sort(songList, new Comparator<Song>(){
+            public int compare(Song a, Song b){
+                return a.getTitle().compareTo(b.getTitle());
+            }
+        });
+
         //Fade in, fade out animation
         final TextView TextView3 = (TextView)findViewById(R.id.textView3);
         final Animation fadein = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade);
@@ -95,14 +105,6 @@ public class Initialization extends AppCompatActivity {
     @Override
     public void onStart(){
         super.onStart();
-        songList = new ArrayList<Song>();
-        getSongList();
-
-        Collections.sort(songList, new Comparator<Song>(){
-            public int compare(Song a, Song b){
-                return a.getTitle().compareTo(b.getTitle());
-            }
-        });
 
         //Progress bar
         Progress.setProgress(0);
@@ -111,32 +113,6 @@ public class Initialization extends AppCompatActivity {
 
     }
 
-    public void getSongList() {
-        //retrieve song info
-        ContentResolver musicResolver = getContentResolver();
-        Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
-        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
-
-        if(musicCursor!=null && musicCursor.moveToFirst()){
-            //get columns
-            int titleColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media.TITLE);
-            int idColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media._ID);
-            int artistColumn = musicCursor.getColumnIndex
-                    (android.provider.MediaStore.Audio.Media.ARTIST);
-            int dataColumn= musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.DATA);
-            //add songs to list
-            do {
-                long thisId = musicCursor.getLong(idColumn);
-                String thisTitle = musicCursor.getString(titleColumn);
-                String thisArtist = musicCursor.getString(artistColumn);
-                String thisPath = musicCursor.getString(dataColumn);
-                songList.add(new Song(thisId, thisTitle, thisArtist, thisPath));
-            }
-            while (musicCursor.moveToNext());
-        }
-    }
 
     //Background song processing thread
     class MyAsyncTask extends AsyncTask<ArrayList<Song>, Integer, Void> {
@@ -151,7 +127,7 @@ public class Initialization extends AppCompatActivity {
             {
                 songList.get(i).setBpm((int)AnalyzeBPM(songList.get(i).getPath()));
                 mFirebaseDatabaseReference.push().setValue(songList.get(i));
-                publishProgress((100*(i+1))/(2*size));
+                publishProgress((100*(i+1))/(size));
             }
 
             return null;
@@ -172,6 +148,32 @@ public class Initialization extends AppCompatActivity {
     }
 
     public native float AnalyzeBPM(String songPath);
+
+    public void getSongList() {
+        //retrieve song info
+        ContentResolver musicResolver = getContentResolver();
+        Uri musicUri = android.provider.MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
+        Cursor musicCursor = musicResolver.query(musicUri, null, null, null, null);
+
+        if(musicCursor!=null && musicCursor.moveToFirst()){
+            //get columns
+            int titleColumn = musicCursor.getColumnIndex
+                    (android.provider.MediaStore.Audio.Media.TITLE);
+            int idColumn = musicCursor.getColumnIndex
+                    (android.provider.MediaStore.Audio.Media._ID);
+            int artistColumn = musicCursor.getColumnIndex
+                    (android.provider.MediaStore.Audio.Media.ARTIST);
+            int dataColumn= musicCursor.getColumnIndex(android.provider.MediaStore.Audio.Media.DATA);
+            //add songs to list
+            do {
+                String thisTitle = musicCursor.getString(titleColumn);
+                String thisArtist = musicCursor.getString(artistColumn);
+                String thisPath = musicCursor.getString(dataColumn);
+                songList.add(new Song(thisTitle, thisArtist, thisPath));
+            }
+            while (musicCursor.moveToNext());
+        }
+    }
 }
 
 
