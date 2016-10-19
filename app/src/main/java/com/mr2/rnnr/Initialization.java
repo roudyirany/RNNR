@@ -33,7 +33,6 @@ public class Initialization extends AppCompatActivity {
     private ArrayList<Song> songList;
     private int size;
     private int processed=0;
-    boolean fire=true;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -116,22 +115,40 @@ public class Initialization extends AppCompatActivity {
         Progress.setProgress(0);
         Progress.setMax(100);
 
-
         int j=0;
         while((j+4)<size)
         {
-            if(fire) {
                 new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
                 new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
                 new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 2));
                 new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 3));
                 new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 4));
                 j = j + 5;
-            }
         }
 
-        for(int i=j ; i<size; i++)
-            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
+        if(size % j == 4)
+        {
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 2));
+        }
+
+        else if(size % j == 3)
+        {
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
+        }
+
+        else if(size % j == 2)
+        {
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
+        }
+
+        else
+            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j - 1));
 
     }
 
@@ -146,13 +163,7 @@ public class Initialization extends AppCompatActivity {
 
             song.setBpm((int)AnalyzeBPM(song.getPath()));
             mFirebaseDatabaseReference.push().setValue(song);
-
             processed++;
-            if (processed % 5 == 0)
-                fire = true;
-            else
-                fire = false;
-
             publishProgress((100*(processed))/(size));
 
             return null;
