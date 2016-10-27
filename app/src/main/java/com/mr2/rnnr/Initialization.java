@@ -1,13 +1,23 @@
 package com.mr2.rnnr;
 
+import android.content.Context;
 import android.content.Intent;
+import android.graphics.Point;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Gravity;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.LinearLayout;
+import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 
@@ -40,6 +50,7 @@ public class Initialization extends AppCompatActivity {
     private int size;
     private int processed=0;
     boolean fire=true;
+    boolean firstTime=false;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -132,7 +143,7 @@ public class Initialization extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.getValue() == null)
                 {
-
+                    firstTime = true;
                     size = songList.size();
                     int j=0;
                     while((j+4)<size)
@@ -211,7 +222,6 @@ public class Initialization extends AppCompatActivity {
                         Progress.setProgress(((i+1)/size)*100);
                     }
 
-                    //Progress.setProgress(100);
                 }
             }
 
@@ -253,6 +263,12 @@ public class Initialization extends AppCompatActivity {
             // Executes whenever publishProgress is called from doInBackground
             // Used to update the progress indicator
             Progress.setProgress(values[0]);
+
+            if(firstTime && values[0]==100) {
+                showPopup();
+                final TextView TextView3 = (TextView)findViewById(R.id.textView3);
+                TextView3.setVisibility(View.GONE);
+            }
         }
 
 
@@ -286,6 +302,26 @@ public class Initialization extends AppCompatActivity {
             }
             while (musicCursor.moveToNext());
         }
+    }
+
+    //Stats Popup Window
+    public void showPopup() {
+
+        // Inflate the popup_layout.xml
+        LayoutInflater layoutInflater = (LayoutInflater) getBaseContext()
+                .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+        View popupView = layoutInflater.inflate(R.layout.statspopup, null);
+
+        // Creating the PopupWindow
+        final PopupWindow popup = new PopupWindow(
+                popupView,
+                1000,
+                ViewGroup.LayoutParams.WRAP_CONTENT);
+
+        popup.setFocusable(true);
+
+        //Display PopupWindow at center
+        popup.showAtLocation(popupView, Gravity.CENTER,0,0);
     }
 }
 

@@ -1,0 +1,127 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="250dp"
+    android:id="@+id/popup"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@android:color/white">
+
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="250dp"
+        android:layout_height="match_parent"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:text="Gender "
+            android:layout_width="72dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView4"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-thin"
+            android:layout_marginTop="0dp"
+            android:textColor="@android:color/black"
+            android:textStyle="bold" />
+
+        <RadioGroup
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent">
+
+            <RadioButton
+                android:text="Male"
+                android:layout_width="68dp"
+                android:layout_height="wrap_content"
+                android:id="@+id/radioButton1"
+                android:fontFamily="sans-serif-thin"/>
+
+            <RadioButton
+                android:text="Female"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:id="@+id/radioButton2"
+                android:fontFamily="sans-serif-thin"/>
+
+            </LinearLayout>
+
+
+        </RadioGroup>
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="250dp"
+        android:layout_marginTop="10dp"
+        android:weightSum="1"
+        android:layout_height="60dp"
+        android:layout_gravity="center_horizontal">
+
+        <TextView
+            android:text="Date Of Birth "
+            android:layout_width="30dp"
+            android:layout_height="wrap_content"
+            android:id="@+id/textView5"
+            android:textSize="18sp"
+            android:fontFamily="sans-serif-thin"
+            android:layout_marginTop="0dp"
+            android:textColor="@android:color/black"
+            android:textStyle="bold"
+            android:layout_weight="0.50"
+            android:layout_gravity="center_vertical"/>
+
+        <EditText
+            android:layout_width="41dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:ems="10"
+            android:id="@+id/editText1"
+            android:hint="DD"
+            android:fontFamily="sans-serif-thin"
+            android:layout_gravity="center_vertical"/>
+
+        <EditText
+            android:layout_width="41dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:ems="10"
+            android:id="@+id/editText2"
+            android:hint="MM"
+            android:fontFamily="sans-serif-thin"
+            android:layout_weight="0.05"
+            android:layout_gravity="center_vertical"/>
+
+        <EditText
+            android:layout_width="54dp"
+            android:layout_height="wrap_content"
+            android:inputType="number"
+            android:ems="10"
+            android:id="@+id/editText3"
+            android:hint="YYYY"
+            android:fontFamily="sans-serif-thin"
+            android:layout_gravity="center_vertical"/>
+
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/submit"
+        android:layout_marginTop="10dp"
+        android:layout_gravity="center_horizontal"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="Submit"
+        android:background="@android:color/holo_orange_light" />
+
+
+</LinearLayout>
