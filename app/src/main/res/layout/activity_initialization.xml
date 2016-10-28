@@ -5,7 +5,9 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     tools:context="com.mr2.rnnr.Initialization"
-    android:background="#ffffff">
+    android:background="#ffffff"
+    android:id="@+id/window"
+    android:foreground="@drawable/shape">
 
     <TextView
         android:layout_width="wrap_content"

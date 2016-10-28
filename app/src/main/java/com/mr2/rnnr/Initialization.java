@@ -2,8 +2,10 @@ package com.mr2.rnnr;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.Point;
 import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.ColorDrawable;
 import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
@@ -16,12 +18,19 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
+import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
+import android.widget.RadioButton;
+import android.widget.Spinner;
 import android.widget.TextView;
 
 import java.lang.reflect.GenericArrayType;
+import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
@@ -45,6 +54,7 @@ import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 
 public class Initialization extends AppCompatActivity {
     ProgressBar Progress;
+    FrameLayout wind;
     private ArrayList<Song> songList;
     private ArrayList<String> localLibrary;
     private int size;
@@ -64,6 +74,8 @@ public class Initialization extends AppCompatActivity {
         setContentView(R.layout.activity_initialization);
 
         Progress = (ProgressBar) findViewById (R.id.progressBar);
+        wind = (FrameLayout) findViewById(R.id.window);
+        wind.getForeground().setAlpha(0);
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -75,7 +87,7 @@ public class Initialization extends AppCompatActivity {
             return;
         }
 
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid()+"/library");
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid());
 
         songList = new ArrayList<Song>();
         localLibrary = new ArrayList<String>();
@@ -138,7 +150,7 @@ public class Initialization extends AppCompatActivity {
         Progress.setMax(100);
 
         //Checks if user exists and updates library accordingly
-        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+        mFirebaseDatabaseReference.child("library").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.getValue() == null)
@@ -232,6 +244,21 @@ public class Initialization extends AppCompatActivity {
 
         });
 
+        //Checks if target speed value has been calculated before
+        mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener(){
+
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.getValue() == null)
+                    showPopup();
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
 
     }
 
@@ -244,9 +271,9 @@ public class Initialization extends AppCompatActivity {
             //implement background tasks
             Song song = songs[0];
 
-            mFirebaseDatabaseReference.child(song.getTitle()).child("path").setValue(song.getPath());
-            mFirebaseDatabaseReference.child(song.getTitle()).child("bpm").setValue((int)AnalyzeBPM(song.getPath()));
-            mFirebaseDatabaseReference.child(song.getTitle()).child("cluster").setValue(0);
+            mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("path").setValue(song.getPath());
+            mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("bpm").setValue((int)AnalyzeBPM(song.getPath()));
+            mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("cluster").setValue(0);
 
             processed++;
             if (processed % 5 == 0)
@@ -264,11 +291,6 @@ public class Initialization extends AppCompatActivity {
             // Used to update the progress indicator
             Progress.setProgress(values[0]);
 
-            if(firstTime && values[0]==100) {
-                showPopup();
-                final TextView TextView3 = (TextView)findViewById(R.id.textView3);
-                TextView3.setVisibility(View.GONE);
-            }
         }
 
 
@@ -310,7 +332,7 @@ public class Initialization extends AppCompatActivity {
         // Inflate the popup_layout.xml
         LayoutInflater layoutInflater = (LayoutInflater) getBaseContext()
                 .getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-        View popupView = layoutInflater.inflate(R.layout.statspopup, null);
+        final View popupView = layoutInflater.inflate(R.layout.statspopup, null);
 
         // Creating the PopupWindow
         final PopupWindow popup = new PopupWindow(
@@ -318,10 +340,42 @@ public class Initialization extends AppCompatActivity {
                 1000,
                 ViewGroup.LayoutParams.WRAP_CONTENT);
 
-        popup.setFocusable(true);
+        NumberPicker np = (NumberPicker) popupView.findViewById(R.id.numberpicker);  // get the widget
+        np.setMaxValue(100);                                                 // set the max value
+        np.setMinValue(5);                                                 // set the min value
+        np.setValue(20);                                                    // set initial display value
+        np.setWrapSelectorWheel(true);
 
         //Display PopupWindow at center
         popup.showAtLocation(popupView, Gravity.CENTER,0,0);
+
+        wind.getForeground().setAlpha(220);
+
+        // Getting a reference to Close button, and close the popup when clicked.
+        Button submit = (Button) popupView.findViewById(R.id.submit);
+        submit.setOnClickListener(new View.OnClickListener() {
+
+            @Override
+            public void onClick(View v) {
+
+                RadioButton male = (RadioButton) popupView.findViewById(R.id.radioButton1);
+                NumberPicker age = (NumberPicker) popupView.findViewById(R.id.numberpicker);
+                int x = age.getValue();
+                double y=0;
+
+                if(male.isChecked())
+                    y = 0.00000002*Math.pow(x,5)-0.000005*Math.pow(x,4)+0.0006*Math.pow(x,3)-0.031*Math.pow(x,2)+0.6837*x+6.489;
+
+                else
+                    y = -0.0000007*Math.pow(x,4)+0.0002*Math.pow(x,3)-0.0125*Math.pow(x,2)+0.3664*x+6.8437;
+
+                DecimalFormat df = new DecimalFormat("####0.00");
+                mFirebaseDatabaseReference.child("targetSpeed").setValue(df.format(y));
+                popup.dismiss();
+                wind.getForeground().setAlpha(0);
+
+            }
+        });
     }
 }
 

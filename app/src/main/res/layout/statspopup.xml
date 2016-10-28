@@ -17,7 +17,7 @@
 
         <TextView
             android:text="Gender "
-            android:layout_width="72dp"
+            android:layout_width="73dp"
             android:layout_height="wrap_content"
             android:id="@+id/textView4"
             android:textSize="18sp"
@@ -28,19 +28,15 @@
 
         <RadioGroup
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
-
-            <LinearLayout
-                android:orientation="horizontal"
-                android:layout_width="match_parent"
-                android:layout_height="match_parent">
-
+            android:layout_height="match_parent"
+            android:orientation="horizontal">
             <RadioButton
                 android:text="Male"
-                android:layout_width="68dp"
+                android:layout_width="84dp"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton1"
-                android:fontFamily="sans-serif-thin"/>
+                android:fontFamily="sans-serif-thin"
+                android:checked="true" />
 
             <RadioButton
                 android:text="Female"
@@ -48,10 +44,6 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton2"
                 android:fontFamily="sans-serif-thin"/>
-
-            </LinearLayout>
-
-
         </RadioGroup>
 
 
@@ -66,7 +58,7 @@
         android:layout_gravity="center_horizontal">
 
         <TextView
-            android:text="Date Of Birth "
+            android:text="Age"
             android:layout_width="30dp"
             android:layout_height="wrap_content"
             android:id="@+id/textView5"
@@ -75,41 +67,15 @@
             android:layout_marginTop="0dp"
             android:textColor="@android:color/black"
             android:textStyle="bold"
-            android:layout_weight="0.50"
+            android:layout_weight="0.30"
             android:layout_gravity="center_vertical"/>
 
-        <EditText
-            android:layout_width="41dp"
+
+        <NumberPicker
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:inputType="number"
-            android:ems="10"
-            android:id="@+id/editText1"
-            android:hint="DD"
-            android:fontFamily="sans-serif-thin"
-            android:layout_gravity="center_vertical"/>
-
-        <EditText
-            android:layout_width="41dp"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:ems="10"
-            android:id="@+id/editText2"
-            android:hint="MM"
-            android:fontFamily="sans-serif-thin"
-            android:layout_weight="0.05"
-            android:layout_gravity="center_vertical"/>
-
-        <EditText
-            android:layout_width="54dp"
-            android:layout_height="wrap_content"
-            android:inputType="number"
-            android:ems="10"
-            android:id="@+id/editText3"
-            android:hint="YYYY"
-            android:fontFamily="sans-serif-thin"
-            android:layout_gravity="center_vertical"/>
-
-
+            android:id="@+id/numberpicker">
+        </NumberPicker>
 
     </LinearLayout>
 
@@ -122,6 +88,7 @@
         android:layout_marginBottom="10dp"
         android:text="Submit"
         android:background="@android:color/holo_orange_light" />
+
 
 
 </LinearLayout>
