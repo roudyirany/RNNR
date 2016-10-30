@@ -192,47 +192,52 @@ public class Initialization extends AppCompatActivity {
 
                     //additions to local library
                     added.removeAll(intersection);
-                    size = added.size();
-
-                    if(size>0) {
-                        //add missing tracks
-                        int j = 0;
-                        while ((j + 4) < size) {
-                            if (fire) {
-                                int index = localLibrary.indexOf(added.get(j));
-                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                index = localLibrary.indexOf(added.get(j + 1));
-                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                index = localLibrary.indexOf(added.get(j + 2));
-                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                index = localLibrary.indexOf(added.get(j + 3));
-                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                index = localLibrary.indexOf(added.get(j + 4));
-                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                j = j + 5;
-                            }
-                        }
-
-                        for (int i = j; i < size; i++) {
-                            int index = localLibrary.indexOf(added.get(i));
-                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-                        }
-                    }
 
                     //deletions from local library
                     removed.removeAll(intersection);
-                    size = removed.size();
 
-                    for(int i=0; i<size; i++)
-                    {
-                        mFirebaseDatabaseReference.child(removed.get(0)).setValue(null);
-                        Progress.setProgress(((i+1)/size)*100);
+                    size = added.size()+removed.size();
+
+                    if(size >0) {
+                        if (added.size() > 0) {
+                            //add missing tracks
+                            int j = 0;
+                            while ((j + 4) < added.size()) {
+                                if (fire) {
+                                    int index = localLibrary.indexOf(added.get(j));
+                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+
+                                    index = localLibrary.indexOf(added.get(j + 1));
+                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+
+                                    index = localLibrary.indexOf(added.get(j + 2));
+                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+
+                                    index = localLibrary.indexOf(added.get(j + 3));
+                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+
+                                    index = localLibrary.indexOf(added.get(j + 4));
+                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+
+                                    j = j + 5;
+                                }
+                            }
+
+                            for (int i = j; i < added.size(); i++) {
+                                int index = localLibrary.indexOf(added.get(i));
+                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+                            }
+                        }
+
+
+                        for (int i = 0; i < removed.size(); i++) {
+                            mFirebaseDatabaseReference.child(removed.get(0)).setValue(null);
+                            processed++;
+                            Progress.setProgress((processed / size) * 100);
+                        }
                     }
+
+                    else setProgress(100);
 
                 }
             }
