@@ -264,6 +264,9 @@ public class Initialization extends AppCompatActivity {
             }
         });
 
+        Intent intent = new Intent(this, MainMenu.class);
+        startActivity(intent);
+
 
     }
 
