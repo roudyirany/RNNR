@@ -259,6 +259,7 @@ public class Initialization extends AppCompatActivity {
                 }
                 else{
                     if(size == 0 || (processed/size)==1) {
+                        Progress.setProgress(100);
                         Intent intent = new Intent(Initialization.this, MainMenu.class);
                         startActivity(intent);
                         finish();

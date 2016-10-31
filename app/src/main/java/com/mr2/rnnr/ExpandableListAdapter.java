@@ -9,6 +9,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseExpandableListAdapter;
+import android.widget.Button;
 import android.widget.TextView;
 
 public class ExpandableListAdapter extends BaseExpandableListAdapter {
@@ -48,7 +49,7 @@ public class ExpandableListAdapter extends BaseExpandableListAdapter {
             convertView = infalInflater.inflate(R.layout.child_layout, null);
         }
 
-        TextView txtListChild = (TextView) convertView
+        Button txtListChild = (Button) convertView
                 .findViewById(R.id.childTextView);
 
         txtListChild.setText(childText);
