@@ -60,7 +60,8 @@ public class Initialization extends AppCompatActivity {
     private int size;
     private int processed=0;
     boolean fire=true;
-    boolean firstTime=false;
+    boolean launch=false;
+
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -155,7 +156,6 @@ public class Initialization extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.getValue() == null)
                 {
-                    firstTime = true;
                     size = songList.size();
                     int j=0;
                     while((j+4)<size)
@@ -237,7 +237,6 @@ public class Initialization extends AppCompatActivity {
                         }
                     }
 
-                    else setProgress(100);
 
                 }
             }
@@ -254,8 +253,17 @@ public class Initialization extends AppCompatActivity {
 
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                if (snapshot.getValue() == null)
+                if (snapshot.getValue() == null) {
                     showPopup();
+                    launch=false;
+                }
+                else{
+                    if(size == 0 || (processed/size)==1) {
+                        Intent intent = new Intent(Initialization.this, MainMenu.class);
+                        startActivity(intent);
+                        finish();
+                    }
+                }
             }
 
             @Override
@@ -263,9 +271,6 @@ public class Initialization extends AppCompatActivity {
 
             }
         });
-
-        Intent intent = new Intent(this, MainMenu.class);
-        startActivity(intent);
 
 
     }
@@ -298,6 +303,12 @@ public class Initialization extends AppCompatActivity {
             // Executes whenever publishProgress is called from doInBackground
             // Used to update the progress indicator
             Progress.setProgress(values[0]);
+
+            if(values[0]==100 && launch)
+            {
+                Intent intent = new Intent(Initialization.this, MainMenu.class);
+                startActivity(intent);
+            }
 
         }
 
@@ -382,9 +393,19 @@ public class Initialization extends AppCompatActivity {
                 popup.dismiss();
                 wind.getForeground().setAlpha(0);
 
+
+                if(size ==0 || (processed/size)==1) {
+                    Intent intent = new Intent(Initialization.this, MainMenu.class);
+                    startActivity(intent);
+                    finish();
+                }
+
+                else launch = true;
+
             }
         });
     }
+
 }
 
 
