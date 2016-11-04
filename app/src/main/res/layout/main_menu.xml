@@ -10,7 +10,8 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.mr2.rnnr.MainMenu"
     android:weightSum="1"
-    android:orientation="vertical">
+    android:orientation="vertical"
+    android:background="@android:color/white">
 
     <TextView
         android:layout_width="match_parent"
@@ -28,9 +29,9 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/expandableList"
+        android:paddingTop="30dp"
         android:divider="@android:color/holo_green_light"
         android:dividerHeight="5dp"
-        android:indicatorLeft="?android:attr/expandableListPreferredChildIndicatorLeft"
         >
     </ExpandableListView>
 

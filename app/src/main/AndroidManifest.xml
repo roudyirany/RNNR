@@ -20,7 +20,8 @@
             </intent-filter>
         </activity>
         <activity android:name=".Sign_In" />
-        <activity android:name=".MainMenu"></activity>
+        <activity android:name=".MainMenu" />
+        <activity android:name=".MusicTester"></activity>
     </application>
 
 </manifest>

@@ -50,7 +50,7 @@ public class MainMenu extends AppCompatActivity {
         listDataHeader.add("Walk-Jog");
         listDataHeader.add("Sprints");
         listDataHeader.add("Pyramid Intervals");
-        listDataHeader.add("Quickie");
+        listDataHeader.add("Quick Workout");
         listDataHeader.add("Fat Burner");
         listDataHeader.add("Custom");
 
