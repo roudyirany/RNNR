@@ -61,6 +61,7 @@ public class Initialization extends AppCompatActivity {
     private int processed=0;
     boolean fire=true;
     boolean launch=false;
+    boolean firstTime=false;
 
 
     // Firebase instance variables
@@ -172,6 +173,8 @@ public class Initialization extends AppCompatActivity {
 
                     for(int i=j ; i<size; i++)
                         new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
+
+                    firstTime=true;
 
                 }
 
@@ -307,8 +310,17 @@ public class Initialization extends AppCompatActivity {
 
             if(values[0]==100 && launch)
             {
-                Intent intent = new Intent(Initialization.this, MainMenu.class);
-                startActivity(intent);
+                if(!firstTime) {
+                    Intent intent = new Intent(Initialization.this, MainMenu.class);
+                    startActivity(intent);
+                }
+
+                else{
+                    Intent intent = new Intent(Initialization.this, MusicTester.class);
+                    startActivity(intent);
+                }
+
+                finish();
             }
 
         }
@@ -383,11 +395,12 @@ public class Initialization extends AppCompatActivity {
                 int x = age.getValue();
                 double y=0;
 
+                //Calculate target speed
                 if(male.isChecked())
-                    y = 0.00000002*Math.pow(x,5)-0.000005*Math.pow(x,4)+0.0006*Math.pow(x,3)-0.031*Math.pow(x,2)+0.6837*x+6.489;
+                    y = -0.0718*x+12.427;
 
                 else
-                    y = -0.0000007*Math.pow(x,4)+0.0002*Math.pow(x,3)-0.0125*Math.pow(x,2)+0.3664*x+6.8437;
+                    y = -0.0681*x + 11.14;
 
                 DecimalFormat df = new DecimalFormat("####0.00");
                 mFirebaseDatabaseReference.child("targetSpeed").setValue(df.format(y));
@@ -395,9 +408,18 @@ public class Initialization extends AppCompatActivity {
                 wind.getForeground().setAlpha(0);
 
 
+                //if first time logging in, music tester opens. if not, user is redirected to main menu.
                 if(size ==0 || (processed/size)==1) {
-                    Intent intent = new Intent(Initialization.this, MainMenu.class);
-                    startActivity(intent);
+                    if(!firstTime) {
+                        Intent intent = new Intent(Initialization.this, MainMenu.class);
+                        startActivity(intent);
+                    }
+
+                    else{
+                        Intent intent = new Intent(Initialization.this, MusicTester.class);
+                        startActivity(intent);
+                    }
+
                     finish();
                 }
 

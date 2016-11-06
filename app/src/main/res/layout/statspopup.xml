@@ -36,14 +36,16 @@
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton1"
                 android:fontFamily="sans-serif-thin"
-                android:checked="true" />
+                android:checked="true"
+                android:buttonTint="@android:color/holo_orange_dark"/>
 
             <RadioButton
                 android:text="Female"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:id="@+id/radioButton2"
-                android:fontFamily="sans-serif-thin"/>
+                android:fontFamily="sans-serif-thin"
+                android:buttonTint="@android:color/holo_orange_dark"/>
         </RadioGroup>
 
 
@@ -87,7 +89,7 @@
         android:layout_height="wrap_content"
         android:layout_marginBottom="10dp"
         android:text="Submit"
-        android:background="@android:color/holo_orange_dark" />
+        android:background="@android:color/holo_orange_light" />
 
 
 

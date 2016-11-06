@@ -18,6 +18,11 @@ public class Song {
         path=songPath;
     }
 
+    public Song(String songPath, int bpm, int cluster) {
+        title="title";
+        path=songPath;
+    }
+
     public String getTitle(){return title;}
     public String getPath(){return path;}
 }
