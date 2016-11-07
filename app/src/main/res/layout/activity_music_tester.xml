@@ -33,7 +33,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/artistTitle"
-        android:layout_weight="0.10"
+        android:layout_weight="0.89"
         android:fontFamily="sans-serif-thin"
         android:textAlignment="center"
         android:textSize="20sp"
@@ -43,16 +43,15 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="66dp"
+        android:layout_height="wrap_content"
         android:weightSum="1"
-        android:gravity="center"
-        android:layout_weight="0.95">
+        android:gravity="center">
 
         <ImageView
             android:layout_width="wrap_content"
             android:layout_height="35dp"
             app:srcCompat="@android:drawable/btn_star"
-            android:id="@+id/imageView1"
+            android:id="@+id/like"
             android:gravity="center"
             android:tint="@android:color/black"
             android:layout_weight="0.06" />
@@ -72,7 +71,7 @@
             android:layout_width="wrap_content"
             android:layout_height="45dp"
             app:srcCompat="@android:drawable/ic_media_next"
-            android:id="@+id/imageView3"
+            android:id="@+id/skip"
             android:gravity="center"
             android:tint="@android:color/black"
             android:layout_weight="0.07" />
@@ -82,7 +81,7 @@
     <LinearLayout
         android:orientation="horizontal"
         android:layout_width="match_parent"
-        android:layout_height="36dp">
+        android:layout_height="wrap_content">
 
         <ImageView
             android:layout_width="20dp"
@@ -94,7 +93,7 @@
 
         <SeekBar
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_height="39dp"
             android:id="@+id/seekBar"
             android:layout_weight="1"
             android:thumbTint="@android:color/holo_orange_light"
@@ -112,7 +111,7 @@
 
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
+        android:layout_height="33dp"
         android:text="Done"
         android:layout_gravity="center"
         android:background="@android:color/holo_orange_light"

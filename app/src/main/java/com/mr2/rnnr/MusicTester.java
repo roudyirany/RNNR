@@ -38,6 +38,9 @@ public class MusicTester extends AppCompatActivity {
     private DatabaseReference mFirebaseDatabaseReference;
 
     ArrayList<String> songList;
+    int songsLoaded=0;
+    int size;
+    ArrayList<Integer> songListNumbers;
 
     MediaPlayer mediaPlayer;
     CountDownTimer countDownTimer;
@@ -49,6 +52,8 @@ public class MusicTester extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_music_tester);
+
+        songList = new ArrayList<String>();
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -71,6 +76,7 @@ public class MusicTester extends AppCompatActivity {
                     songList.add(s);
                 }
 
+                size = songList.size();
                 loadSong();
             }
 
@@ -108,9 +114,10 @@ public class MusicTester extends AppCompatActivity {
     @Override
     protected void onStart(){
         super.onStart();
-        songList = new ArrayList<String>();
+        songListNumbers = new ArrayList<Integer>();
+        int a = (int)Math.ceil(0.1*size);
 
-        Toast.makeText(MusicTester.this, "Please rate at least 20 tracks from your library before proceeding.",
+        Toast.makeText(MusicTester.this, "Please rate at least " + Integer.toString(a) + " tracks from your library before proceeding.",
                 Toast.LENGTH_LONG).show();
 
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -150,7 +157,8 @@ public class MusicTester extends AppCompatActivity {
                 }
 
                 else{
-                    mediaPlayer.pause();
+                    if(mediaPlayer.isPlaying())
+                        mediaPlayer.pause();
                     countDownTimer.cancel();
                     imageView.setImageResource(android.R.drawable.ic_media_play);
                     imageView.setTag("play");
@@ -158,38 +166,76 @@ public class MusicTester extends AppCompatActivity {
             }
         });
 
+        //Skip button functionality
+        final ImageView skip = (ImageView) findViewById(R.id.skip);
+        skip.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                nextSong();
+            }
+        });
+
+        //Like button functionality
+        final ImageView like = (ImageView) findViewById(R.id.like);
+        like.setOnClickListener(new View.OnClickListener(){
+
+            @Override
+            public void onClick(View v) {
+                nextSong();
+            }
+        });
+
     }
 
     //Loads the next song randomly
     public void loadSong(){
-        int n = (int) (Math.random() * (songList.size()-1) + 0);
 
-        MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-        retriever.setDataSource(songList.get(n));
+        if(songsLoaded < size) {
+            songsLoaded++;
+            int n = (int) (Math.random() * (songList.size() - 1) + 0);
 
-        //Displays album cover art
-        byte[] art = retriever.getEmbeddedPicture();
-        ImageView imgAlbum = (ImageView) findViewById(R.id.imgAlbum);
-        if( art != null ){
-            imgAlbum.setImageBitmap( BitmapFactory.decodeByteArray(art, 0, art.length));
+            if (songListNumbers.isEmpty())
+                songListNumbers.add(n);
+            else {
+                while (songListNumbers.contains(n))
+                    n = (int) (Math.random() * (songList.size() - 1) + 0);
+                songListNumbers.add(n);
+            }
+
+            MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+            retriever.setDataSource(songList.get(n));
+
+            //Displays album cover art
+            byte[] art = retriever.getEmbeddedPicture();
+            ImageView imgAlbum = (ImageView) findViewById(R.id.imgAlbum);
+            if (art != null) {
+                imgAlbum.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+            } else {
+                imgAlbum.setImageResource(R.drawable.unknown_track);
+            }
+
+            //Displays artist name and title
+            String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+            String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+            TextView artistTitle = (TextView) findViewById(R.id.artistTitle);
+
+            String result = artist + " - " + title;
+            if (result.length() <= 50)
+                artistTitle.setText(artist + " - " + title);
+            else
+                artistTitle.setText(artist + " - " + title.substring(0, 48 - artist.length()) + "...");
+
+            mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
+            mediaPlayer.setVolume(currentVol, currentVol);
         }
-        else{
-            imgAlbum.setImageResource(R.drawable.unknown_track);
+
+        //Enable done button when enough songs have been rated
+        if(songsLoaded>(int)Math.ceil(0.1*size)){
+            Button button = (Button) findViewById(R.id.done);
+            button.setEnabled(true);
         }
 
-        //Displays artist name and title
-        String artist =  retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-        String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-        TextView artistTitle = (TextView) findViewById(R.id.artistTitle);
-
-        String result = artist + " - " + title;
-        if(result.length()<=50)
-            artistTitle.setText(artist + " - " + title);
-        else
-            artistTitle.setText(artist + " - " + title.substring(0,48-artist.length())+"...");
-
-        mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
-        mediaPlayer.setVolume(currentVol,currentVol);
     }
 
     //Override volume up & down key behaviors
@@ -225,5 +271,43 @@ public class MusicTester extends AppCompatActivity {
         else {
             return super.onKeyDown(keyCode, event);
         }
+    }
+
+    //Play next song
+    public void nextSong(){
+        final ImageView imageView = (ImageView) findViewById(R.id.playpause);
+        final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
+
+        mediaPlayer.pause();
+        mediaPlayer.release();
+
+        countDownTimer.cancel();
+        timer=20000;
+
+        loadSong();
+        mediaPlayer.seekTo(30000);
+
+        mediaPlayer.start();
+        imageView.setImageResource(android.R.drawable.ic_media_pause);
+        imageView.setTag("pause");
+
+        countDownTimer = new CountDownTimer(timer,1000) {
+
+            public void onTick(long millisUntilFinished) {
+                timer = timer - 1000;
+                if(timer>1000)
+                    progressBar.setProgress((20000-timer)/1000);
+                else
+                    progressBar.setProgress(20);
+            }
+
+            public void onFinish() {
+                mediaPlayer.pause();
+                timer = 20000;
+                imageView.setImageResource(android.R.drawable.ic_media_play);
+                imageView.setTag("play");
+                progressBar.setProgress(0);
+            }
+        }.start();
     }
 }

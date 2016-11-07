@@ -17,13 +17,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
-        android:text="@string/app_name"
+        android:text="Welcome to"
+        android:id="@+id/textView1"
+        android:textColor="@android:color/black"
+        android:typeface="sans"
+        android:fontFamily="sans-serif-thin"
+        android:textAlignment="center"
+        android:textSize="40dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:textAppearance="?android:attr/textAppearanceLarge"
+        android:text="RNNR"
         android:id="@+id/textView"
         android:textColor="@android:color/holo_orange_light"
         android:typeface="sans"
         android:fontFamily="sans-serif-thin"
-        android:textSize="60dp"
-        android:textAlignment="center" />
+        android:textAlignment="center"
+        android:textSize="50dp" />
 
     <ExpandableListView
         android:layout_width="match_parent"
