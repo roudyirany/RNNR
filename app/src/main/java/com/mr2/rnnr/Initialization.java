@@ -61,7 +61,7 @@ public class Initialization extends AppCompatActivity {
     private int processed=0;
     boolean fire=true;
     boolean launch=false;
-    boolean firstTime=false;
+    boolean testing;
 
 
     // Firebase instance variables
@@ -174,7 +174,8 @@ public class Initialization extends AppCompatActivity {
                     for(int i=j ; i<size; i++)
                         new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
 
-                    firstTime=true;
+                    mFirebaseDatabaseReference.child("testing").setValue(false);
+                    testing = false;
 
                 }
 
@@ -240,6 +241,18 @@ public class Initialization extends AppCompatActivity {
                         }
                     }
 
+                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            testing = dataSnapshot.getValue(Boolean.class);
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
 
                 }
             }
@@ -263,8 +276,17 @@ public class Initialization extends AppCompatActivity {
                 else{
                     if(size == 0 || (processed/size)==1) {
                         Progress.setProgress(100);
-                        Intent intent = new Intent(Initialization.this, MainMenu.class);
-                        startActivity(intent);
+                        Log.d("bool:",""+testing);
+                        if(testing) {
+                            Intent intent = new Intent(Initialization.this, MainMenu.class);
+                            startActivity(intent);
+                        }
+
+                        else{
+                            Intent intent = new Intent(Initialization.this, MusicTester.class);
+                            startActivity(intent);
+                        }
+
                         finish();
                     }
                 }
@@ -310,7 +332,8 @@ public class Initialization extends AppCompatActivity {
 
             if(values[0]==100 && launch)
             {
-                if(!firstTime) {
+                Log.d("bool:",""+testing);
+                if(testing) {
                     Intent intent = new Intent(Initialization.this, MainMenu.class);
                     startActivity(intent);
                 }
@@ -410,7 +433,8 @@ public class Initialization extends AppCompatActivity {
 
                 //if first time logging in, music tester opens. if not, user is redirected to main menu.
                 if(size ==0 || (processed/size)==1) {
-                    if(!firstTime) {
+                    Log.d("bool:",""+testing);
+                    if(testing) {
                         Intent intent = new Intent(Initialization.this, MainMenu.class);
                         startActivity(intent);
                     }

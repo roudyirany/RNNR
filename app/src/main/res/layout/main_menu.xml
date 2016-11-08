@@ -31,7 +31,7 @@
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="RNNR"
         android:id="@+id/textView"
-        android:textColor="@android:color/holo_orange_light"
+        android:textColor="@android:color/holo_orange_dark"
         android:typeface="sans"
         android:fontFamily="sans-serif-thin"
         android:textAlignment="center"

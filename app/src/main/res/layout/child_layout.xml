@@ -7,7 +7,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:id="@+id/childTextView"
-        android:background="@android:color/holo_orange_light"
+        android:background="@android:color/holo_orange_dark"
         android:gravity="center_horizontal"
         android:paddingTop="10dp"
         android:paddingBottom="10dp"

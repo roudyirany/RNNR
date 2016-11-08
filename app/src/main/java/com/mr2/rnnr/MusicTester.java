@@ -1,6 +1,8 @@
 package com.mr2.rnnr;
 
+import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.media.AudioManager;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -45,8 +47,11 @@ public class MusicTester extends AppCompatActivity {
     MediaPlayer mediaPlayer;
     CountDownTimer countDownTimer;
     int timer = 20000;
-    float currentVol = (float)0.5;
+
+    int maxVol;
+    int currentVol;
     SeekBar volumeBar;
+    AudioManager audioManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,14 +92,18 @@ public class MusicTester extends AppCompatActivity {
         });
 
         //Enable volume display and control
-        volumeBar.setMax(10);
-        volumeBar.setProgress(5);
+        audioManager = (AudioManager) getSystemService(AUDIO_SERVICE);
+        setVolumeControlStream(AudioManager.STREAM_MUSIC);
+        maxVol = audioManager.getStreamMaxVolume(AudioManager.STREAM_MUSIC);
+        currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
+
+        volumeBar.setMax(100);
+        volumeBar.setProgress((currentVol/maxVol)*100);
         volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                float log1=(float)(Math.log(10-progress)/Math.log(10));
-                mediaPlayer.setVolume((float)(1-log1),(float)(1-log1));
-                currentVol = 1-log1;
+                currentVol =(int) Math.ceil(((double)volumeBar.getProgress()/100.0)*(double)maxVol);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,currentVol,0);
             }
 
             @Override
@@ -109,15 +118,9 @@ public class MusicTester extends AppCompatActivity {
         });
 
 
-    }
-
-    @Override
-    protected void onStart(){
-        super.onStart();
         songListNumbers = new ArrayList<Integer>();
-        int a = (int)Math.ceil(0.1*size);
 
-        Toast.makeText(MusicTester.this, "Please rate at least " + Integer.toString(a) + " tracks from your library before proceeding.",
+        Toast.makeText(MusicTester.this, "Please rate the following songs before proceeding.",
                 Toast.LENGTH_LONG).show();
 
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
@@ -159,7 +162,8 @@ public class MusicTester extends AppCompatActivity {
                 else{
                     if(mediaPlayer.isPlaying())
                         mediaPlayer.pause();
-                    countDownTimer.cancel();
+                    if(countDownTimer != null)
+                        countDownTimer.cancel();
                     imageView.setImageResource(android.R.drawable.ic_media_play);
                     imageView.setTag("play");
                 }
@@ -234,6 +238,19 @@ public class MusicTester extends AppCompatActivity {
         if(songsLoaded>(int)Math.ceil(0.1*size)){
             Button button = (Button) findViewById(R.id.done);
             button.setEnabled(true);
+
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mediaPlayer.stop();
+                    mediaPlayer.release();
+                    mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
+                    mFirebaseDatabaseReference.child("testing").setValue(true);
+
+                    Intent intent = new Intent(MusicTester.this, MainMenu.class);
+                    startActivity(intent);
+                }
+            });
         }
 
     }
@@ -241,31 +258,29 @@ public class MusicTester extends AppCompatActivity {
     //Override volume up & down key behaviors
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            if(currentVol-(float)0.1 < 0)
-                currentVol=0;
-            else
-                currentVol = currentVol - (float)0.1;
-
-            mediaPlayer.setVolume(currentVol,currentVol);
-
-            if(volumeBar.getProgress()-1 < 0)
+            if(volumeBar.getProgress()-10<0) {
+                currentVol = 0;
                 volumeBar.setProgress(0);
-            else
-                volumeBar.setProgress(volumeBar.getProgress()-1);
+            }
+
+            else{
+                volumeBar.setProgress(volumeBar.getProgress()-10);
+                currentVol =(int) Math.ceil(((double)volumeBar.getProgress()/100.0)*(double)maxVol);
+            }
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,currentVol,0);
             return true;
         }
         else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
-            if(currentVol+(float)0.1 > 1)
-                currentVol=1;
-            else
-                currentVol = currentVol + (float)0.1;
+            if(volumeBar.getProgress()+10>100) {
+                currentVol = 100;
+                volumeBar.setProgress(100);
+            }
 
-            mediaPlayer.setVolume(currentVol,currentVol);
-
-            if(volumeBar.getProgress()+1 > 10)
-                volumeBar.setProgress(10);
-            else
-                volumeBar.setProgress(volumeBar.getProgress()+1);
+            else{
+                volumeBar.setProgress(volumeBar.getProgress()+10);
+                currentVol =(int) Math.ceil(((double)volumeBar.getProgress()/100.0)*(double)maxVol);
+            }
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,currentVol,0);
             return true;
         }
         else {
@@ -281,7 +296,8 @@ public class MusicTester extends AppCompatActivity {
         mediaPlayer.pause();
         mediaPlayer.release();
 
-        countDownTimer.cancel();
+        if(countDownTimer != null)
+            countDownTimer.cancel();
         timer=20000;
 
         loadSong();
