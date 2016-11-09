@@ -29,16 +29,15 @@
         android:layout_gravity="center"/>
 
     <TextView
-        android:text="Artist Name - Title"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
         android:id="@+id/artistTitle"
         android:layout_weight="0.94"
         android:fontFamily="sans-serif-thin"
         android:textAlignment="center"
         android:textSize="20sp"
         android:textStyle="bold"
-        android:textColor="@android:color/black"/>
+        android:textColor="@android:color/black"
+        android:layout_height="50dp" />
 
     <LinearLayout
         android:orientation="horizontal"

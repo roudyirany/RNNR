@@ -33,25 +33,22 @@ import java.util.Random;
 
 public class MusicTester extends AppCompatActivity {
 
-    // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
-
-    private DatabaseReference mFirebaseDatabaseReference;
-
     ArrayList<String> songList;
-    int songsLoaded=0;
+    int songsLoaded = 0;
     int size;
     ArrayList<Integer> songListNumbers;
-
     MediaPlayer mediaPlayer;
     CountDownTimer countDownTimer;
     int timer = 20000;
-
     int maxVol;
     int currentVol;
     SeekBar volumeBar;
     AudioManager audioManager;
+
+    // Firebase instance variables
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mFirebaseUser;
+    private DatabaseReference mFirebaseDatabaseReference;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,7 +61,7 @@ public class MusicTester extends AppCompatActivity {
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
 
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid()+"/library");
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/library");
 
         volumeBar = (SeekBar) findViewById(R.id.seekBar);
 
@@ -76,7 +73,7 @@ public class MusicTester extends AppCompatActivity {
         mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot snapshot) {
-                for(DataSnapshot postSnapshot: snapshot.getChildren()) {
+                for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     String s = postSnapshot.child("path").getValue().toString();
                     songList.add(s);
                 }
@@ -98,12 +95,12 @@ public class MusicTester extends AppCompatActivity {
         currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 
         volumeBar.setMax(100);
-        volumeBar.setProgress((int)Math.ceil(((double)currentVol/(double)maxVol)*100));
+        volumeBar.setProgress((int) Math.ceil(((double) currentVol / (double) maxVol) * 100));
         volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
-                currentVol =(int) Math.ceil(((double)volumeBar.getProgress()/100.0)*(double)maxVol);
-                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,currentVol,0);
+                currentVol = (int) Math.ceil(((double) volumeBar.getProgress() / 100.0) * (double) maxVol);
+                audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVol, 0);
             }
 
             @Override
@@ -126,22 +123,22 @@ public class MusicTester extends AppCompatActivity {
 
         //If song is playing, pause button should be displayed and vice versa.
         final ImageView imageView = (ImageView) findViewById(R.id.playpause);
-        imageView.setOnClickListener(new View.OnClickListener(){
-            public void onClick(View v){
-                if(String.valueOf(imageView.getTag()).equals("play")){
-                    if(timer == 20000)
+        imageView.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (String.valueOf(imageView.getTag()).equals("play")) {
+                    if (timer == 20000)
                         mediaPlayer.seekTo(30000);
 
                     mediaPlayer.start();
                     imageView.setImageResource(android.R.drawable.ic_media_pause);
                     imageView.setTag("pause");
 
-                    countDownTimer = new CountDownTimer(timer,1000) {
+                    countDownTimer = new CountDownTimer(timer, 1000) {
 
                         public void onTick(long millisUntilFinished) {
                             timer = timer - 1000;
-                            if(timer>1000)
-                                progressBar.setProgress((20000-timer)/1000);
+                            if (timer > 1000)
+                                progressBar.setProgress((20000 - timer) / 1000);
                             else
                                 progressBar.setProgress(20);
                         }
@@ -154,12 +151,10 @@ public class MusicTester extends AppCompatActivity {
                             progressBar.setProgress(0);
                         }
                     }.start();
-                }
-
-                else{
-                    if(mediaPlayer.isPlaying())
+                } else {
+                    if (mediaPlayer.isPlaying())
                         mediaPlayer.pause();
-                    if(countDownTimer != null)
+                    if (countDownTimer != null)
                         countDownTimer.cancel();
                     imageView.setImageResource(android.R.drawable.ic_media_play);
                     imageView.setTag("play");
@@ -169,7 +164,7 @@ public class MusicTester extends AppCompatActivity {
 
         //Skip button functionality
         final ImageView skip = (ImageView) findViewById(R.id.skip);
-        skip.setOnClickListener(new View.OnClickListener(){
+        skip.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -179,7 +174,7 @@ public class MusicTester extends AppCompatActivity {
 
         //Like button functionality
         final ImageView like = (ImageView) findViewById(R.id.like);
-        like.setOnClickListener(new View.OnClickListener(){
+        like.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
@@ -190,9 +185,9 @@ public class MusicTester extends AppCompatActivity {
     }
 
     //Loads the next song randomly
-    public void loadSong(){
+    public void loadSong() {
 
-        if(songsLoaded < size) {
+        if (songsLoaded < size) {
             songsLoaded++;
             int n = (int) (Math.random() * (songList.size() - 1) + 0);
 
@@ -229,16 +224,14 @@ public class MusicTester extends AppCompatActivity {
 
             mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
             mediaPlayer.setVolume(currentVol, currentVol);
-        }
-
-        else{
+        } else {
             Intent intent = new Intent(MusicTester.this, MainMenu.class);
             startActivity(intent);
             finish();
         }
 
         //Enable done button when enough songs have been rated
-        if(songsLoaded>(int)Math.ceil(0.1*size)){
+        if (songsLoaded > (int) Math.ceil(0.1 * size)) {
             Button button = (Button) findViewById(R.id.done);
             button.setEnabled(true);
 
@@ -263,47 +256,41 @@ public class MusicTester extends AppCompatActivity {
     //Override volume up & down key behaviors
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_VOLUME_DOWN) {
-            if(volumeBar.getProgress()-10<0) {
+            if (volumeBar.getProgress() - 10 < 0) {
                 currentVol = 0;
                 volumeBar.setProgress(0);
+            } else {
+                volumeBar.setProgress(volumeBar.getProgress() - 10);
+                currentVol = (int) Math.ceil(((double) volumeBar.getProgress() / 100.0) * (double) maxVol);
             }
-
-            else{
-                volumeBar.setProgress(volumeBar.getProgress()-10);
-                currentVol =(int) Math.ceil(((double)volumeBar.getProgress()/100.0)*(double)maxVol);
-            }
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,currentVol,0);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVol, 0);
             return true;
-        }
-        else if(keyCode == KeyEvent.KEYCODE_VOLUME_UP){
-            if(volumeBar.getProgress()+10>100) {
+        } else if (keyCode == KeyEvent.KEYCODE_VOLUME_UP) {
+            if (volumeBar.getProgress() + 10 > 100) {
                 currentVol = 100;
                 volumeBar.setProgress(100);
+            } else {
+                volumeBar.setProgress(volumeBar.getProgress() + 10);
+                currentVol = (int) Math.ceil(((double) volumeBar.getProgress() / 100.0) * (double) maxVol);
             }
-
-            else{
-                volumeBar.setProgress(volumeBar.getProgress()+10);
-                currentVol =(int) Math.ceil(((double)volumeBar.getProgress()/100.0)*(double)maxVol);
-            }
-            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC,currentVol,0);
+            audioManager.setStreamVolume(AudioManager.STREAM_MUSIC, currentVol, 0);
             return true;
-        }
-        else {
+        } else {
             return super.onKeyDown(keyCode, event);
         }
     }
 
     //Play next song
-    public void nextSong(){
+    public void nextSong() {
         final ImageView imageView = (ImageView) findViewById(R.id.playpause);
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
 
         mediaPlayer.pause();
         mediaPlayer.release();
 
-        if(countDownTimer != null)
+        if (countDownTimer != null)
             countDownTimer.cancel();
-        timer=20000;
+        timer = 20000;
 
         loadSong();
         mediaPlayer.seekTo(30000);
@@ -312,12 +299,12 @@ public class MusicTester extends AppCompatActivity {
         imageView.setImageResource(android.R.drawable.ic_media_pause);
         imageView.setTag("pause");
 
-        countDownTimer = new CountDownTimer(timer,1000) {
+        countDownTimer = new CountDownTimer(timer, 1000) {
 
             public void onTick(long millisUntilFinished) {
                 timer = timer - 1000;
-                if(timer>1000)
-                    progressBar.setProgress((20000-timer)/1000);
+                if (timer > 1000)
+                    progressBar.setProgress((20000 - timer) / 1000);
                 else
                     progressBar.setProgress(20);
             }
