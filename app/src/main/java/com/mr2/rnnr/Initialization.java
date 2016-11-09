@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
+import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -376,6 +377,7 @@ public class Initialization extends AppCompatActivity {
             }
             while (musicCursor.moveToNext());
         }
+        musicCursor.close();
     }
 
     //Stats Popup Window
