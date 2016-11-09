@@ -98,7 +98,7 @@ public class MusicTester extends AppCompatActivity {
         currentVol = audioManager.getStreamVolume(AudioManager.STREAM_MUSIC);
 
         volumeBar.setMax(100);
-        volumeBar.setProgress((currentVol/maxVol)*100);
+        volumeBar.setProgress((int)Math.ceil(((double)currentVol/(double)maxVol)*100));
         volumeBar.setOnSeekBarChangeListener(new SeekBar.OnSeekBarChangeListener() {
             @Override
             public void onProgressChanged(SeekBar seekBar, int progress, boolean fromUser) {
@@ -119,9 +119,6 @@ public class MusicTester extends AppCompatActivity {
 
 
         songListNumbers = new ArrayList<Integer>();
-
-        Toast.makeText(MusicTester.this, "Please rate the following songs before proceeding.",
-                Toast.LENGTH_LONG).show();
 
         final ProgressBar progressBar = (ProgressBar) findViewById(R.id.progressBar);
         progressBar.setMax(20);
@@ -234,6 +231,12 @@ public class MusicTester extends AppCompatActivity {
             mediaPlayer.setVolume(currentVol, currentVol);
         }
 
+        else{
+            Intent intent = new Intent(MusicTester.this, MainMenu.class);
+            startActivity(intent);
+            finish();
+        }
+
         //Enable done button when enough songs have been rated
         if(songsLoaded>(int)Math.ceil(0.1*size)){
             Button button = (Button) findViewById(R.id.done);
@@ -249,6 +252,7 @@ public class MusicTester extends AppCompatActivity {
 
                     Intent intent = new Intent(MusicTester.this, MainMenu.class);
                     startActivity(intent);
+                    finish();
                 }
             });
         }

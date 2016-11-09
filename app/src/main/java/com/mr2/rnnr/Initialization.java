@@ -2,11 +2,6 @@ package com.mr2.rnnr;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.Point;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.ColorDrawable;
-import android.graphics.drawable.GradientDrawable;
 import android.os.AsyncTask;
 import android.provider.ContactsContract;
 import android.support.v7.app.AppCompatActivity;
@@ -18,24 +13,18 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.Animation;
 import android.view.animation.AnimationUtils;
-import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.FrameLayout;
-import android.widget.LinearLayout;
 import android.widget.NumberPicker;
 import android.widget.PopupWindow;
 import android.widget.ProgressBar;
 import android.widget.RadioButton;
-import android.widget.Spinner;
 import android.widget.TextView;
 
-import java.lang.reflect.GenericArrayType;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
-import java.util.HashMap;
-import java.util.Map;
 
 import android.net.Uri;
 import android.content.ContentResolver;
@@ -61,7 +50,6 @@ public class Initialization extends AppCompatActivity {
     private int processed=0;
     boolean fire=true;
     boolean launch=false;
-    boolean testing;
 
 
     // Firebase instance variables
@@ -157,6 +145,7 @@ public class Initialization extends AppCompatActivity {
             public void onDataChange(DataSnapshot snapshot) {
                 if (snapshot.getValue() == null)
                 {
+
                     size = songList.size();
                     int j=0;
                     while((j+4)<size)
@@ -174,8 +163,6 @@ public class Initialization extends AppCompatActivity {
                     for(int i=j ; i<size; i++)
                         new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
 
-                    mFirebaseDatabaseReference.child("testing").setValue(false);
-                    testing = false;
 
                 }
 
@@ -240,20 +227,6 @@ public class Initialization extends AppCompatActivity {
                             Progress.setProgress((processed / size) * 100);
                         }
                     }
-
-                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            testing = dataSnapshot.getValue(Boolean.class);
-                        }
-
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
-
-                        }
-                    });
-
-
                 }
             }
 
@@ -276,18 +249,30 @@ public class Initialization extends AppCompatActivity {
                 else{
                     if(size == 0 || (processed/size)==1) {
                         Progress.setProgress(100);
-                        Log.d("bool:",""+testing);
-                        if(testing) {
-                            Intent intent = new Intent(Initialization.this, MainMenu.class);
-                            startActivity(intent);
-                        }
+                        mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if(dataSnapshot.getValue() != null){
+                                    Intent intent = new Intent(Initialization.this, MainMenu.class);
+                                    startActivity(intent);
 
-                        else{
-                            Intent intent = new Intent(Initialization.this, MusicTester.class);
-                            startActivity(intent);
-                        }
+                                    finish();
+                                }
 
-                        finish();
+                                else{
+
+                                    Intent intent = new Intent(Initialization.this, MusicTester.class);
+                                    startActivity(intent);
+
+                                    finish();
+                                }
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+
+                            }
+                        });
                     }
                 }
             }
@@ -315,10 +300,10 @@ public class Initialization extends AppCompatActivity {
             mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("cluster").setValue(0);
 
             processed++;
-            if (processed % 5 == 0)
+            if (processed % 5 == 0) {
                 fire = true;
-            else
                 fire = false;
+            }
 
             publishProgress((100*(processed))/(size));
 
@@ -332,18 +317,30 @@ public class Initialization extends AppCompatActivity {
 
             if(values[0]==100 && launch)
             {
-                Log.d("bool:",""+testing);
-                if(testing) {
-                    Intent intent = new Intent(Initialization.this, MainMenu.class);
-                    startActivity(intent);
-                }
+                mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if(dataSnapshot.getValue() != null){
+                            Intent intent = new Intent(Initialization.this, MainMenu.class);
+                            startActivity(intent);
 
-                else{
-                    Intent intent = new Intent(Initialization.this, MusicTester.class);
-                    startActivity(intent);
-                }
+                            finish();
+                        }
 
-                finish();
+                        else{
+
+                            Intent intent = new Intent(Initialization.this, MusicTester.class);
+                            startActivity(intent);
+
+                            finish();
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
             }
 
         }
@@ -433,18 +430,30 @@ public class Initialization extends AppCompatActivity {
 
                 //if first time logging in, music tester opens. if not, user is redirected to main menu.
                 if(size ==0 || (processed/size)==1) {
-                    Log.d("bool:",""+testing);
-                    if(testing) {
-                        Intent intent = new Intent(Initialization.this, MainMenu.class);
-                        startActivity(intent);
-                    }
+                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if(dataSnapshot.getValue() != null){
+                                Intent intent = new Intent(Initialization.this, MainMenu.class);
+                                startActivity(intent);
 
-                    else{
-                        Intent intent = new Intent(Initialization.this, MusicTester.class);
-                        startActivity(intent);
-                    }
+                                finish();
+                            }
 
-                    finish();
+                            else{
+
+                                Intent intent = new Intent(Initialization.this, MusicTester.class);
+                                startActivity(intent);
+
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
                 }
 
                 else launch = true;
