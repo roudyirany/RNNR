@@ -147,7 +147,7 @@ public class MusicTester extends AppCompatActivity {
                         }
 
                         public void onFinish() {
-                            mediaPlayer.pause();
+                            mediaPlayer.stop();
                             timer = 20000;
                             imageView.setImageResource(android.R.drawable.ic_media_play);
                             imageView.setTag("play");
@@ -247,6 +247,7 @@ public class MusicTester extends AppCompatActivity {
                 public void onClick(View v) {
                     mediaPlayer.stop();
                     mediaPlayer.release();
+                    countDownTimer.cancel();
                     mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
                     mFirebaseDatabaseReference.child("testing").setValue(true);
 
@@ -322,7 +323,7 @@ public class MusicTester extends AppCompatActivity {
             }
 
             public void onFinish() {
-                mediaPlayer.pause();
+                mediaPlayer.stop();
                 timer = 20000;
                 imageView.setImageResource(android.R.drawable.ic_media_play);
                 imageView.setTag("play");
