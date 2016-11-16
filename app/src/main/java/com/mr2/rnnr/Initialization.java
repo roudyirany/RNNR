@@ -3,6 +3,7 @@ package com.mr2.rnnr;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.os.PowerManager;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -50,7 +51,8 @@ public class Initialization extends AppCompatActivity {
     ProgressBar Progress;
     FrameLayout wind;
     boolean fire = true;
-    boolean launch = false;
+    PowerManager powerManager;
+    PowerManager.WakeLock wakelock;
     private ArrayList<Song> songList;
     private ArrayList<String> localLibrary;
     private int size;
@@ -64,6 +66,10 @@ public class Initialization extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_initialization);
+
+        powerManager = (PowerManager) getSystemService(POWER_SERVICE);
+        wakelock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "wake lock");
+        wakelock.acquire();
 
         Progress = (ProgressBar) findViewById(R.id.progressBar);
         wind = (FrameLayout) findViewById(R.id.window);
@@ -79,7 +85,9 @@ public class Initialization extends AppCompatActivity {
             return;
         }
 
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid());
+        mFirebaseDatabaseReference.keepSynced(true);
 
         songList = new ArrayList<Song>();
         localLibrary = new ArrayList<String>();
@@ -138,8 +146,8 @@ public class Initialization extends AppCompatActivity {
         super.onStart();
 
         //Progress bar
-        Progress.setProgress(0);
         Progress.setMax(100);
+        Progress.setProgress(0);
 
         //Checks if user exists and updates library accordingly
         mFirebaseDatabaseReference.child("library").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -225,41 +233,39 @@ public class Initialization extends AppCompatActivity {
                             Progress.setProgress((processed / size) * 100);
                         }
                     }
-                }
-            }
 
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
+                    else{
+                        //Checks if target speed value has been calculated before
+                        mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
 
-            }
-
-        });
-
-        //Checks if target speed value has been calculated before
-        mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
-
-            @Override
-            public void onDataChange(DataSnapshot snapshot) {
-                if (snapshot.getValue() == null) {
-                    showPopup();
-                    launch = false;
-                } else {
-                    if (size == 0 || (processed / size) == 1) {
-                        Progress.setProgress(100);
-                        mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
                             @Override
-                            public void onDataChange(DataSnapshot dataSnapshot) {
-                                if (dataSnapshot.getValue() != null) {
-                                    Intent intent = new Intent(Initialization.this, MainMenu.class);
-                                    startActivity(intent);
-
-                                    finish();
+                            public void onDataChange(DataSnapshot snapshot) {
+                                if (snapshot.getValue() == null) {
+                                    showPopup();
                                 } else {
+                                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                                        @Override
+                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                            if (dataSnapshot.getValue() != null) {
+                                                Intent intent = new Intent(Initialization.this, MainMenu.class);
+                                                startActivity(intent);
 
-                                    Intent intent = new Intent(Initialization.this, MusicTester.class);
-                                    startActivity(intent);
+                                                finish();
+                                            } else {
 
-                                    finish();
+                                                Intent intent = new Intent(Initialization.this, MusicTester.class);
+                                                startActivity(intent);
+
+                                                finish();
+                                            }
+                                        }
+
+                                        @Override
+                                        public void onCancelled(DatabaseError databaseError) {
+
+                                        }
+                                    });
+
                                 }
                             }
 
@@ -276,6 +282,7 @@ public class Initialization extends AppCompatActivity {
             public void onCancelled(DatabaseError databaseError) {
 
             }
+
         });
 
 
@@ -299,7 +306,7 @@ public class Initialization extends AppCompatActivity {
 
             do {
                 String thisPath = musicCursor.getString(dataColumn);
-                String thisTitle = (thisPath.substring(thisPath.lastIndexOf("/") + 1, thisPath.length() - 4)).replace(".", "").replace(" ", "");
+                String thisTitle = (thisPath.substring(thisPath.lastIndexOf("/") + 1, thisPath.length() - 4)).replace(".", "").replace(" ", "").replace("#", "").replace("[", "").replace("]", "");
                 songList.add(new Song(thisTitle, thisPath));
             }
             while (musicCursor.moveToNext());
@@ -358,30 +365,29 @@ public class Initialization extends AppCompatActivity {
 
 
                 //if first time logging in, music tester opens. if not, user is redirected to main menu.
-                if (size == 0 || (processed / size) == 1) {
-                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
-                        @Override
-                        public void onDataChange(DataSnapshot dataSnapshot) {
-                            if (dataSnapshot.getValue() != null) {
-                                Intent intent = new Intent(Initialization.this, MainMenu.class);
-                                startActivity(intent);
+                mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.getValue() != null) {
+                            Intent intent = new Intent(Initialization.this, MainMenu.class);
+                            startActivity(intent);
 
-                                finish();
-                            } else {
+                            finish();
+                        } else {
 
-                                Intent intent = new Intent(Initialization.this, MusicTester.class);
-                                startActivity(intent);
+                            Intent intent = new Intent(Initialization.this, MusicTester.class);
+                            startActivity(intent);
 
-                                finish();
-                            }
+                            finish();
                         }
+                    }
 
-                        @Override
-                        public void onCancelled(DatabaseError databaseError) {
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
 
-                        }
-                    });
-                } else launch = true;
+                    }
+                });
+
 
             }
         });
@@ -393,9 +399,10 @@ public class Initialization extends AppCompatActivity {
         protected Void doInBackground(Song... songs) {
             //implement background tasks
             Song song = songs[0];
+            int bpm = (int) AnalyzeBPM(song.getPath());
 
             mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("path").setValue(song.getPath());
-            mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("bpm").setValue((int) AnalyzeBPM(song.getPath()));
+            mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("bpm").setValue(bpm);
             mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("cluster").setValue(0);
 
             processed++;
@@ -414,21 +421,40 @@ public class Initialization extends AppCompatActivity {
             // Used to update the progress indicator
             Progress.setProgress(values[0]);
 
-            if (values[0] == 100 && launch) {
-                mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+            if (values[0] == 100) {
+                wakelock.release();
+
+                //Checks if target speed value has been calculated before
+                mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
+
                     @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        if (dataSnapshot.getValue() != null) {
-                            Intent intent = new Intent(Initialization.this, MainMenu.class);
-                            startActivity(intent);
-
-                            finish();
+                    public void onDataChange(DataSnapshot snapshot) {
+                        if (snapshot.getValue() == null) {
+                            showPopup();
                         } else {
+                            mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                    if (dataSnapshot.getValue() != null) {
+                                        Intent intent = new Intent(Initialization.this, MainMenu.class);
+                                        startActivity(intent);
 
-                            Intent intent = new Intent(Initialization.this, MusicTester.class);
-                            startActivity(intent);
+                                        finish();
+                                    } else {
 
-                            finish();
+                                        Intent intent = new Intent(Initialization.this, MusicTester.class);
+                                        startActivity(intent);
+
+                                        finish();
+                                    }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
                         }
                     }
 

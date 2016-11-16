@@ -7,7 +7,8 @@
     tools:context="com.mr2.rnnr.Initialization"
     android:background="#ffffff"
     android:id="@+id/window"
-    android:foreground="@drawable/shape">
+    android:foreground="@drawable/shape"
+    android:keepScreenOn="true">
 
     <TextView
         android:layout_width="wrap_content"
@@ -29,8 +30,7 @@
         android:indeterminate="false"
         android:layout_row="5"
         android:layout_column="0"
-        android:progressTint="@android:color/holo_orange_dark"
-        android:progressBackgroundTint="@android:color/holo_orange_dark" />
+        android:progressTint="@android:color/holo_orange_dark" />
 
     <TextView
         android:layout_width="wrap_content"

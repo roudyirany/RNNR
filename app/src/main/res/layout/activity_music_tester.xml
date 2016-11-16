@@ -25,13 +25,12 @@
         android:layout_height="26dp"
         android:id="@+id/progressBar"
         android:paddingTop="10dp"
-        android:progressTint="@android:color/holo_orange_light"
+        android:progressTint="@android:color/holo_orange_dark"
         android:layout_gravity="center"/>
 
     <TextView
         android:layout_width="match_parent"
         android:id="@+id/artistTitle"
-        android:layout_weight="0.94"
         android:fontFamily="sans-serif-thin"
         android:textAlignment="center"
         android:textSize="20sp"
@@ -96,8 +95,8 @@
             android:layout_height="39dp"
             android:id="@+id/seekBar"
             android:layout_weight="1"
-            android:thumbTint="@android:color/holo_orange_light"
-            android:progressTint="@android:color/holo_orange_light"
+            android:thumbTint="@android:color/holo_orange_dark"
+            android:progressTint="@android:color/holo_orange_dark"
             android:layout_gravity="center"/>
 
         <ImageView
@@ -111,10 +110,11 @@
 
     <Button
         android:layout_width="wrap_content"
-        android:layout_height="38dp"
+        android:layout_height="wrap_content"
         android:text="Done"
         android:layout_gravity="center"
-        android:background="@android:color/holo_orange_light"
-        android:id="@+id/done"/>
+        android:background="@android:color/holo_orange_dark"
+        android:id="@+id/done"
+        android:layout_marginBottom="0dp" />
 
 </LinearLayout>

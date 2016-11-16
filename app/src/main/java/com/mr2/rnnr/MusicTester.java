@@ -144,7 +144,7 @@ public class MusicTester extends AppCompatActivity {
                         }
 
                         public void onFinish() {
-                            mediaPlayer.stop();
+                            mediaPlayer.pause();
                             timer = 20000;
                             imageView.setImageResource(android.R.drawable.ic_media_play);
                             imageView.setTag("play");
@@ -218,12 +218,11 @@ public class MusicTester extends AppCompatActivity {
 
             String result = artist + " - " + title;
             if (result.length() <= 50)
-                artistTitle.setText(artist + " - " + title);
+                artistTitle.setText(result);
             else
-                artistTitle.setText(artist + " - " + title.substring(0, 48 - artist.length()) + "...");
+                artistTitle.setText(result.substring(0,50)+"...");
 
             mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
-            mediaPlayer.setVolume(currentVol, currentVol);
         } else {
             Intent intent = new Intent(MusicTester.this, MainMenu.class);
             startActivity(intent);
@@ -310,7 +309,7 @@ public class MusicTester extends AppCompatActivity {
             }
 
             public void onFinish() {
-                mediaPlayer.stop();
+                mediaPlayer.pause();
                 timer = 20000;
                 imageView.setImageResource(android.R.drawable.ic_media_play);
                 imageView.setTag("play");
