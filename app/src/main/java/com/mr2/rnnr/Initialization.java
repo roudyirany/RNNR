@@ -228,53 +228,17 @@ public class Initialization extends AppCompatActivity {
 
 
                         for (int i = 0; i < removed.size(); i++) {
-                            mFirebaseDatabaseReference.child(removed.get(0)).setValue(null);
+                            mFirebaseDatabaseReference.child("/library/"+removed.get(i)).setValue(null);
                             processed++;
                             Progress.setProgress((processed / size) * 100);
+
+                            if(processed == size)
+                                openIntent();
                         }
                     }
 
-                    else{
-                        //Checks if target speed value has been calculated before
-                        mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
-
-                            @Override
-                            public void onDataChange(DataSnapshot snapshot) {
-                                if (snapshot.getValue() == null) {
-                                    showPopup();
-                                } else {
-                                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
-                                        @Override
-                                        public void onDataChange(DataSnapshot dataSnapshot) {
-                                            if (dataSnapshot.getValue() != null) {
-                                                Intent intent = new Intent(Initialization.this, MainMenu.class);
-                                                startActivity(intent);
-
-                                                finish();
-                                            } else {
-
-                                                Intent intent = new Intent(Initialization.this, MusicTester.class);
-                                                startActivity(intent);
-
-                                                finish();
-                                            }
-                                        }
-
-                                        @Override
-                                        public void onCancelled(DatabaseError databaseError) {
-
-                                        }
-                                    });
-
-                                }
-                            }
-
-                            @Override
-                            public void onCancelled(DatabaseError databaseError) {
-
-                            }
-                        });
-                    }
+                    else
+                        openIntent();
                 }
             }
 
@@ -423,51 +387,54 @@ public class Initialization extends AppCompatActivity {
 
             if (values[0] == 100) {
                 wakelock.release();
-
-                //Checks if target speed value has been calculated before
-                mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
-
-                    @Override
-                    public void onDataChange(DataSnapshot snapshot) {
-                        if (snapshot.getValue() == null) {
-                            showPopup();
-                        } else {
-                            mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
-                                @Override
-                                public void onDataChange(DataSnapshot dataSnapshot) {
-                                    if (dataSnapshot.getValue() != null) {
-                                        Intent intent = new Intent(Initialization.this, MainMenu.class);
-                                        startActivity(intent);
-
-                                        finish();
-                                    } else {
-
-                                        Intent intent = new Intent(Initialization.this, MusicTester.class);
-                                        startActivity(intent);
-
-                                        finish();
-                                    }
-                                }
-
-                                @Override
-                                public void onCancelled(DatabaseError databaseError) {
-
-                                }
-                            });
-
-                        }
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
+                openIntent();
             }
 
         }
 
 
+    }
+
+    public void openIntent(){
+        //Checks if target speed value has been calculated before
+        mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
+
+            @Override
+            public void onDataChange(DataSnapshot snapshot) {
+                if (snapshot.getValue() == null) {
+                    showPopup();
+                } else {
+                    mFirebaseDatabaseReference.child("testing").addListenerForSingleValueEvent(new ValueEventListener() {
+                        @Override
+                        public void onDataChange(DataSnapshot dataSnapshot) {
+                            if (dataSnapshot.getValue() != null) {
+                                Intent intent = new Intent(Initialization.this, MainMenu.class);
+                                startActivity(intent);
+
+                                finish();
+                            } else {
+
+                                Intent intent = new Intent(Initialization.this, MusicTester.class);
+                                startActivity(intent);
+
+                                finish();
+                            }
+                        }
+
+                        @Override
+                        public void onCancelled(DatabaseError databaseError) {
+
+                        }
+                    });
+
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
     }
 
 }
