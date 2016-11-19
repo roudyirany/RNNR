@@ -6,6 +6,7 @@ import android.os.AsyncTask;
 import android.os.PowerManager;
 import android.provider.ContactsContract;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -46,6 +47,7 @@ import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 public class Initialization extends AppCompatActivity {
     static {
         System.loadLibrary("bpm_analyzer");
+        System.loadLibrary("rnnrsim");
     }
 
     ProgressBar Progress;
@@ -253,6 +255,7 @@ public class Initialization extends AppCompatActivity {
     }
 
     public native float AnalyzeBPM(String songPath);
+    public native void PowerOn();
 
     //Get song list from local library
     public void getSongList() {
