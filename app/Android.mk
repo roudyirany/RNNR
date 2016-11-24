@@ -99,7 +99,7 @@ LOCAL_PATH := $(call my-dir)
        include $(BUILD_SHARED_LIBRARY)
 
        include $(CLEAR_VARS)
-       LOCAL_MODULE := RNNRSim
+       LOCAL_MODULE := rnnrsim
        LOCAL_SRC_FILES := $(LOCAL_PATH)/src/main/jni/rnnrsim.cpp
        LOCAL_STATIC_LIBRARIES := musly
        LOCAL_LDLIBS := -llog

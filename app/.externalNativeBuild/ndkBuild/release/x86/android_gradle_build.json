@@ -113,45 +113,11 @@
       ],
       "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libmusly.so"
     },
-    "bpm_analyzer-release-x86": {
-      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003dx86 NDK_ALL_ABIS\u003dx86 NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libbpm_analyzer.so",
+    "rnnrsim-release-x86": {
+      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003dx86 NDK_ALL_ABIS\u003dx86 NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/librnnrsim.so",
       "toolchain": "toolchain-x86",
       "abi": "x86",
-      "artifactName": "bpm_analyzer",
-      "files": [
-        {
-          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/jni/bpm-analyzer.cpp",
-          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-fno-exceptions\" \"-fno-rtti\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/Superpowered/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-std\u003dc++0x\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
-        }
-      ],
-      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libbpm_analyzer.so"
-    },
-    "resample-release-x86": {
-      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003dx86 NDK_ALL_ABIS\u003dx86 NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libresample.so",
-      "toolchain": "toolchain-x86",
-      "abi": "x86",
-      "artifactName": "resample",
-      "files": [
-        {
-          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample/filterkit.c",
-          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
-        },
-        {
-          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample/resample.c",
-          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
-        },
-        {
-          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample/resamplesubs.c",
-          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
-        }
-      ],
-      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libresample.so"
-    },
-    "RNNRSim-release-x86": {
-      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003dx86 NDK_ALL_ABIS\u003dx86 NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libRNNRSim.so",
-      "toolchain": "toolchain-x86",
-      "abi": "x86",
-      "artifactName": "RNNRSim",
+      "artifactName": "rnnrsim",
       "files": [
         {
           "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/decoder.cpp",
@@ -238,7 +204,41 @@
           "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-fno-exceptions\" \"-fno-rtti\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-std\u003dc++0x\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
         }
       ],
-      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libRNNRSim.so"
+      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/librnnrsim.so"
+    },
+    "bpm_analyzer-release-x86": {
+      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003dx86 NDK_ALL_ABIS\u003dx86 NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libbpm_analyzer.so",
+      "toolchain": "toolchain-x86",
+      "abi": "x86",
+      "artifactName": "bpm_analyzer",
+      "files": [
+        {
+          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/jni/bpm-analyzer.cpp",
+          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-fno-exceptions\" \"-fno-rtti\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/Superpowered/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/x86/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-std\u003dc++0x\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
+        }
+      ],
+      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libbpm_analyzer.so"
+    },
+    "resample-release-x86": {
+      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003dx86 NDK_ALL_ABIS\u003dx86 NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libresample.so",
+      "toolchain": "toolchain-x86",
+      "abi": "x86",
+      "artifactName": "resample",
+      "files": [
+        {
+          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample/filterkit.c",
+          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
+        },
+        {
+          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample/resample.c",
+          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
+        },
+        {
+          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample/resamplesubs.c",
+          "flags": "\"-ffunction-sections\" \"-funwind-tables\" \"-no-canonical-prefixes\" \"-g\" \"-fstack-protector-strong\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/libresample\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-x86/usr/include\""
+        }
+      ],
+      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/x86/libresample.so"
     }
   },
   "toolchains": {

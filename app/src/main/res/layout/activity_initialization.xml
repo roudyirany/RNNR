@@ -13,28 +13,6 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceSmall"
-        android:text="Loading..."
-        android:id="@+id/textView3"
-        android:layout_gravity="center_horizontal|bottom"
-        android:layout_marginBottom="20dp"
-        android:textColor="@android:color/black"
-        android:fontFamily="sans-serif-thin" />
-
-    <ProgressBar
-        style="?android:attr/progressBarStyleHorizontal"
-        android:layout_width="292dp"
-        android:layout_height="wrap_content"
-        android:id="@+id/progressBar"
-        android:layout_gravity="center"
-        android:indeterminate="false"
-        android:layout_row="5"
-        android:layout_column="0"
-        android:progressTint="@android:color/holo_orange_dark" />
-
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
         android:textAppearance="?android:attr/textAppearanceLarge"
         android:text="@string/app_name"
         android:id="@+id/textView"
@@ -45,16 +23,21 @@
         android:fontFamily="sans-serif-thin"
         android:textSize="60dp" />
 
-    <TextView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:text="We&apos;re doing awesome things with your music."
-        android:id="@+id/textView2"
+    <ProgressBar
+        style="?android:attr/progressBarStyleLarge"
+        android:layout_width="134dp"
+        android:layout_height="117dp"
+        android:id="@+id/progressBar"
         android:layout_gravity="center"
-        android:textSize="7pt"
-        android:textAlignment="center"
-        android:layout_marginTop="20dp"
-        android:textColor="@android:color/black"
-        android:fontFamily="sans-serif-thin" />
+        android:indeterminateTint="@android:color/holo_orange_dark"
+        android:indeterminateDuration="10000" />
+
+    <TextView
+        android:text="0%"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/textView2"
+        android:fontFamily="sans-serif-thin"
+        android:layout_gravity="center"/>
+
 </FrameLayout>

@@ -1,4 +1,12 @@
 *.iml
+/app/.externalNativeBuild/ndkBuild/debug/obj/local/arm64-v8a/libmusly.so
+/app/.externalNativeBuild/ndkBuild/debug/obj/local/armeabi-v7a/libmusly.so
+/app/.externalNativeBuild/ndkBuild/debug/obj/local/armeabi/libmusly.so
+/app/.externalNativeBuild/ndkBuild/debug/obj/local/x86/libmusly.so
+/app/src/main/cpp/FFmpeg/lib/X86/libavcodec.a
+/app/src/main/cpp/FFmpeg/lib/armeabi-v7a/libavcodec.a
+/app/src/main/cpp/FFmpeg/lib/armeabi/libavcodec.a
+/app/src/main/cpp/FFmpeg/lib/arm64-v8a/libavcodec.a
 .gradle
 /local.properties
 /.idea/workspace.xml
@@ -6,3 +14,9 @@
 .DS_Store
 /build
 /captures
+
+*.so
+
+*.so
+
+*.a

@@ -2,6 +2,7 @@ Executable : /Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build
 arguments : 
 NDK_PROJECT_PATH=null
 APP_BUILD_SCRIPT=/Users/roudyirany/Documents/RNNR/app/Android.mk
+NDK_APPLICATION_MK=/Users/roudyirany/Documents/RNNR/app/Application.mk
 APP_ABI=armeabi
 NDK_ALL_ABIS=armeabi
 NDEBUG=0

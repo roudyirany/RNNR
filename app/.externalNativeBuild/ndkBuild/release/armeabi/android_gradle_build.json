@@ -130,11 +130,11 @@
       ],
       "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/armeabi/libresample.so"
     },
-    "RNNRSim-release-armeabi": {
-      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003darmeabi NDK_ALL_ABIS\u003darmeabi NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/armeabi/libRNNRSim.so",
+    "rnnrsim-release-armeabi": {
+      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003darmeabi NDK_ALL_ABIS\u003darmeabi NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/armeabi/librnnrsim.so",
       "toolchain": "toolchain-armeabi",
       "abi": "armeabi",
-      "artifactName": "RNNRSim",
+      "artifactName": "rnnrsim",
       "files": [
         {
           "src": "/Users/roudyirany/Documents/RNNR/app/src/main/cpp/libmusly/decoder.cpp",
@@ -221,7 +221,7 @@
           "flags": "\"-fpic\" \"-ffunction-sections\" \"-funwind-tables\" \"-fstack-protector-strong\" \"-no-canonical-prefixes\" \"-g\" \"-march\u003darmv5te\" \"-mtune\u003dxscale\" \"-msoft-float\" \"-fno-exceptions\" \"-fno-rtti\" \"-mthumb\" \"-Os\" \"-DNDEBUG\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/armeabi/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-std\u003dc++0x\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-arm/usr/include\""
         }
       ],
-      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/armeabi/libRNNRSim.so"
+      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/armeabi/librnnrsim.so"
     },
     "kissfft-release-armeabi": {
       "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003darmeabi NDK_ALL_ABIS\u003darmeabi NDEBUG\u003d0 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/release/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/release/obj/local/armeabi/libkissfft.so",

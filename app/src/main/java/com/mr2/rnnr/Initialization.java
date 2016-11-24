@@ -4,9 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.PowerManager;
-import android.provider.ContactsContract;
-import android.provider.MediaStore;
-import android.provider.Settings;
+import android.os.Process;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,13 +12,10 @@ import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.Animation;
-import android.view.animation.AnimationUtils;
 import android.widget.Button;
 import android.widget.FrameLayout;
 import android.widget.NumberPicker;
 import android.widget.PopupWindow;
-import android.widget.ProgressBar;
 import android.widget.RadioButton;
 import android.widget.TextView;
 
@@ -40,23 +35,24 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Transaction;
 import com.google.firebase.database.ValueEventListener;
+
+import org.w3c.dom.Text;
 
 import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 
 public class Initialization extends AppCompatActivity {
-    static {
-        System.loadLibrary("bpm_analyzer");
-        System.loadLibrary("rnnrsim");
-    }
 
-    ProgressBar Progress;
     FrameLayout wind;
     boolean fire = true;
     PowerManager powerManager;
     PowerManager.WakeLock wakelock;
+    TextView textView;
     private ArrayList<Song> songList;
     private ArrayList<String> localLibrary;
+    private ArrayList<String> addedSongs;
+    private String[] songPaths;
     private int size;
     private int processed = 0;
     // Firebase instance variables
@@ -73,7 +69,8 @@ public class Initialization extends AppCompatActivity {
         wakelock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "wake lock");
         wakelock.acquire();
 
-        Progress = (ProgressBar) findViewById(R.id.progressBar);
+        textView = (TextView) findViewById(R.id.textView2);
+
         wind = (FrameLayout) findViewById(R.id.window);
         wind.getForeground().setAlpha(0);
 
@@ -105,59 +102,24 @@ public class Initialization extends AppCompatActivity {
         for (int i = 0; i < songList.size(); i++)
             localLibrary.add(songList.get(i).getTitle());
 
-        //Fade in, fade out animation
-        final TextView TextView3 = (TextView) findViewById(R.id.textView3);
-        final Animation fadein = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fade);
-        final Animation fadeout = AnimationUtils.loadAnimation(getApplicationContext(), R.anim.fadeout);
-        TextView3.startAnimation(fadein);
-
-        fadein.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                TextView3.startAnimation(fadeout);
-            }
-        });
-
-        fadeout.setAnimationListener(new Animation.AnimationListener() {
-            @Override
-            public void onAnimationStart(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationRepeat(Animation animation) {
-            }
-
-            @Override
-            public void onAnimationEnd(Animation animation) {
-                TextView3.startAnimation(fadein);
-            }
-        });
-
     }
 
     @Override
     public void onStart() {
         super.onStart();
 
-        //Progress bar
-        Progress.setMax(100);
-        Progress.setProgress(0);
 
         //Checks if user exists and updates library accordingly
         mFirebaseDatabaseReference.child("library").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
-            public void onDataChange(DataSnapshot snapshot) {
+            public void onDataChange(final DataSnapshot snapshot) {
                 if (snapshot.getValue() == null) {
-
                     size = songList.size();
+
+                    songPaths = new String[size];
+                    for(int i=0; i<size; i++)
+                        songPaths[i] = songList.get(i).getPath();
+
                     int j = 0;
                     while ((j + 4) < size) {
                         if (fire) {
@@ -184,13 +146,14 @@ public class Initialization extends AppCompatActivity {
 
                     ArrayList<String> intersection = new ArrayList<String>(cloudLibrary);
                     ArrayList<String> added = new ArrayList<String>(localLibrary);
-                    ArrayList<String> removed = new ArrayList<String>(cloudLibrary);
+                    final ArrayList<String> removed = new ArrayList<String>(cloudLibrary);
 
                     //intersection between cloud and local library
                     intersection.retainAll(localLibrary);
 
                     //additions to local library
                     added.removeAll(intersection);
+                    addedSongs = new ArrayList<String>(added);
 
                     //deletions from local library
                     removed.removeAll(intersection);
@@ -230,9 +193,44 @@ public class Initialization extends AppCompatActivity {
 
 
                         for (int i = 0; i < removed.size(); i++) {
+                            final int index =i;
                             mFirebaseDatabaseReference.child("/library/"+removed.get(i)).setValue(null);
+
+                            //Handle clusters
+                            mFirebaseDatabaseReference.child("clusters").equalTo(removed.get(index),"parent").addListenerForSingleValueEvent(new ValueEventListener() {
+                                @Override
+                                public void onDataChange(DataSnapshot dataSnapshot) {
+                                        if(dataSnapshot.getValue() != null){
+                                            final int cluster = Integer.parseInt(dataSnapshot.getKey());
+                                            Log.d("cluster: ", "" + cluster);
+                                            mFirebaseDatabaseReference.child("library").equalTo(cluster,"cluster").limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                                                @Override
+                                                public void onDataChange(DataSnapshot dataSnapshot) {
+
+                                                    //If no other tracks from the cluster exist delete that cluster since it is non existen
+                                                    if(dataSnapshot.getValue() == null)
+                                                        mFirebaseDatabaseReference.child("clusters/"+cluster).setValue(null);
+                                                        // If another track from the same cluster exists set it as that cluster's parent
+                                                    else
+                                                        mFirebaseDatabaseReference.child("clusters/"+cluster+"/parent").setValue(dataSnapshot.getKey());
+                                                }
+
+                                                @Override
+                                                public void onCancelled(DatabaseError databaseError) {
+
+                                                }
+                                            });
+
+                                        }
+                                }
+
+                                @Override
+                                public void onCancelled(DatabaseError databaseError) {
+
+                                }
+                            });
+
                             processed++;
-                            Progress.setProgress((processed / size) * 100);
 
                             if(processed == size)
                                 openIntent();
@@ -253,9 +251,6 @@ public class Initialization extends AppCompatActivity {
 
 
     }
-
-    public native float AnalyzeBPM(String songPath);
-    public native void PowerOn();
 
     //Get song list from local library
     public void getSongList() {
@@ -360,17 +355,16 @@ public class Initialization extends AppCompatActivity {
         });
     }
 
-    //Background song processing thread
+    //Background bpm processing thread
     class MyAsyncTask extends AsyncTask<Song, Integer, Void> {
-
         protected Void doInBackground(Song... songs) {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_FOREGROUND);
             //implement background tasks
             Song song = songs[0];
             int bpm = (int) AnalyzeBPM(song.getPath());
 
             mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("path").setValue(song.getPath());
             mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("bpm").setValue(bpm);
-            mFirebaseDatabaseReference.child("library").child(song.getTitle()).child("cluster").setValue(0);
 
             processed++;
             if (processed % 5 == 0) {
@@ -378,26 +372,154 @@ public class Initialization extends AppCompatActivity {
                 fire = false;
             }
 
-            publishProgress((100 * (processed)) / (size));
+            publishProgress((100*processed)/size);
 
             return null;
         }
 
         protected void onProgressUpdate(Integer... values) {
             // Executes whenever publishProgress is called from doInBackground
-            // Used to update the progress indicator
-            Progress.setProgress(values[0]);
-
-            if (values[0] == 100) {
-                wakelock.release();
-                openIntent();
-            }
+            if(values[0]==100)
+                new SimAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR);
+            else if(values[0] > 0)
+                textView.setText(Integer.toString(values[0]-1)+"%");
 
         }
 
 
     }
 
+    //Background similarity processing thread
+    class SimAsyncTask extends AsyncTask<Void, Void, Void>{
+        protected Void doInBackground(Void... params) {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
+            //Updates cluster information
+            mFirebaseDatabaseReference.child("clusters").addListenerForSingleValueEvent(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(dataSnapshot.getValue() == null)
+                    {
+                        float[][] similarity = new float[size][size];
+                        similarity = Musly(songPaths);
+                        ArrayList<Integer> parents = new ArrayList<Integer>();
+
+                        mFirebaseDatabaseReference.child("clusters/0/parent/").setValue(localLibrary.get(0));
+                        mFirebaseDatabaseReference.child("library/"+localLibrary.get(0)+"/cluster").setValue(0);
+                        parents.add(0);
+
+                        int cluster = 1;
+
+                        for(int i=1; i<size; i++){
+                            float max = 1;
+                            int parent=0;
+
+                            for(int j=0; j<parents.size();j++){
+                                if(similarity[i][parents.get(j)] < max && similarity[i][parents.get(j)] < 0.4) {
+                                    max = similarity[i][parents.get(j)];
+                                    parent = j;
+                                }
+                            }
+
+                            if(max==1){
+                                mFirebaseDatabaseReference.child("clusters/"+cluster+"/parent/").setValue(localLibrary.get(i));
+                                mFirebaseDatabaseReference.child("library/"+localLibrary.get(i)+"/cluster").setValue(cluster);
+                                parents.add(i);
+                                cluster++;
+                            }
+
+                            else
+                                mFirebaseDatabaseReference.child("library/"+localLibrary.get(i)+"/cluster").setValue(parent);
+
+
+                        }
+                    }
+
+                    else{
+                        ArrayList <String> parents = new ArrayList<String>();
+                        ArrayList <Integer> parentsIndex = new ArrayList<Integer>();
+                        ArrayList <Integer> clusterIndex = new ArrayList<Integer>();
+                        String[] songPaths;
+                        int cluster=0;
+
+                        //Get cluster parents
+                        int x=addedSongs.size();
+                        for(DataSnapshot postSnapshot: dataSnapshot.getChildren()){
+                            parents.add(postSnapshot.child("parent").getValue().toString());
+                            parentsIndex.add(x);
+                            clusterIndex.add(Integer.parseInt(postSnapshot.getKey()));
+
+                            if (cluster < Integer.parseInt(postSnapshot.getKey())+1)
+                                cluster = Integer.parseInt(postSnapshot.getKey())+1;
+
+                            x++;
+                        }
+
+                        if(addedSongs.size()>0) {
+                            int size1 = addedSongs.size() + parents.size();
+                            float[][] similarity = new float[size1][size1];
+                            songPaths = new String[size1];
+                            int index=0;
+
+                            for (int i = 0; i < addedSongs.size(); i++) {
+                                index=i;
+                                songPaths[i] = songList.get(localLibrary.indexOf(addedSongs.get(i))).getPath();
+                            }
+
+                            index++;
+                            for (int i = 0; i < parents.size(); i++) {
+                                songPaths[index] = songList.get(localLibrary.indexOf(parents.get(i))).getPath();
+                                index++;
+                            }
+
+                            similarity = Musly(songPaths);
+
+                            for(int i=0; i<addedSongs.size();i++){
+                                float max=1;
+                                int parent=0;
+
+                                for(int j=0; j<parentsIndex.size();j++){
+                                    if(similarity[i][parentsIndex.get(j)] < max && similarity[i][parentsIndex.get(j)] < 0.4) {
+                                        max = similarity[i][parentsIndex.get(j)];
+                                        parent = j;
+                                    }
+                                }
+
+                                if(max==1){
+                                    mFirebaseDatabaseReference.child("clusters/"+cluster+"/parent/").setValue(addedSongs.get(i));
+                                    mFirebaseDatabaseReference.child("library/"+addedSongs.get(i)+"/cluster").setValue(cluster);
+                                    parents.add(addedSongs.get(i));
+                                    parentsIndex.add(i);
+                                    clusterIndex.add(cluster);
+                                    cluster++;
+                                }
+
+                                else{
+                                    mFirebaseDatabaseReference.child("library/"+addedSongs.get(i)+"/cluster").setValue(clusterIndex.get(parent));
+                                }
+
+                            }
+
+                        }
+
+                    }
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+
+                }
+            });
+
+            return null;
+        }
+
+        protected void onPostExecute(Void Result){
+            wakelock.release();
+            openIntent();
+        }
+    }
+
+    //Open next activity: Main menu or Music tester
     public void openIntent(){
         //Checks if target speed value has been calculated before
         mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
@@ -439,6 +561,15 @@ public class Initialization extends AppCompatActivity {
             }
         });
     }
+
+    //Native C Libraries & Functions
+    static {
+        System.loadLibrary("bpm_analyzer");
+        System.loadLibrary("rnnrsim");
+    }
+
+    public native float AnalyzeBPM(String songPath);
+    public native float[][] Musly(String[] songPaths);
 
 }
 
