@@ -193,17 +193,18 @@ public class Initialization extends AppCompatActivity {
 
 
                         for (int i = 0; i < removed.size(); i++) {
-                            final int index =i;
-                            mFirebaseDatabaseReference.child("/library/"+removed.get(i)).setValue(null);
+                            mFirebaseDatabaseReference.child("library/"+removed.get(i)).setValue(null);
 
                             //Handle clusters
-                            mFirebaseDatabaseReference.child("clusters").equalTo(removed.get(index),"parent").addListenerForSingleValueEvent(new ValueEventListener() {
+                            mFirebaseDatabaseReference.child("clusters").orderByChild("parent").equalTo(removed.get(i)).addListenerForSingleValueEvent(new ValueEventListener() {
                                 @Override
                                 public void onDataChange(DataSnapshot dataSnapshot) {
                                         if(dataSnapshot.getValue() != null){
-                                            final int cluster = Integer.parseInt(dataSnapshot.getKey());
-                                            Log.d("cluster: ", "" + cluster);
-                                            mFirebaseDatabaseReference.child("library").equalTo(cluster,"cluster").limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
+                                            int c=0;
+                                            for(DataSnapshot postSnapshot: dataSnapshot.getChildren())
+                                                c = Integer.parseInt(postSnapshot.getKey());
+                                            final int cluster = c;
+                                            mFirebaseDatabaseReference.child("library").orderByChild("cluster").equalTo(cluster).limitToFirst(1).addListenerForSingleValueEvent(new ValueEventListener() {
                                                 @Override
                                                 public void onDataChange(DataSnapshot dataSnapshot) {
 
@@ -211,8 +212,12 @@ public class Initialization extends AppCompatActivity {
                                                     if(dataSnapshot.getValue() == null)
                                                         mFirebaseDatabaseReference.child("clusters/"+cluster).setValue(null);
                                                         // If another track from the same cluster exists set it as that cluster's parent
-                                                    else
-                                                        mFirebaseDatabaseReference.child("clusters/"+cluster+"/parent").setValue(dataSnapshot.getKey());
+                                                    else {
+                                                        String key=null;
+                                                        for (DataSnapshot postSnapshot: dataSnapshot.getChildren())
+                                                            key = postSnapshot.getKey();
+                                                        mFirebaseDatabaseReference.child("clusters/" + cluster + "/parent").setValue(key);
+                                                    }
                                                 }
 
                                                 @Override
@@ -220,7 +225,6 @@ public class Initialization extends AppCompatActivity {
 
                                                 }
                                             });
-
                                         }
                                 }
 

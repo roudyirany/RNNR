@@ -20,3 +20,9 @@
 *.so
 
 *.a
+
+*.so
+
+*.so
+
+app/.externalNativeBuild/ndkBuild/debug/obj/local/armeabi-v7a/libRNNRSim.so
