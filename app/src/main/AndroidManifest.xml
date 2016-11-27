@@ -13,6 +13,8 @@
         android:theme="@style/AppTheme">
         <activity
             android:name=".Initialization"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation"
             android:theme="@style/AppTheme">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -20,9 +22,16 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <activity android:name=".Sign_In" />
-        <activity android:name=".MainMenu" />
-        <activity android:name=".MusicTester"></activity>
+        <activity android:name=".Sign_In"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation"/>
+        <activity android:name=".MainMenu"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation"/>
+        <activity android:name=".MusicTester"
+            android:screenOrientation="portrait"
+            android:configChanges="keyboardHidden|orientation"
+            ></activity>
     </application>
 
 </manifest>

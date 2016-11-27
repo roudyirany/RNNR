@@ -216,11 +216,16 @@ public class MusicTester extends AppCompatActivity {
             String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
             TextView artistTitle = (TextView) findViewById(R.id.artistTitle);
 
+            if (artist == null)
+                artist = "Unknown Artist";
+            if (title == null)
+                title = "Unknown Track";
+
             String result = artist + " - " + title;
             if (result.length() <= 50)
                 artistTitle.setText(result);
             else
-                artistTitle.setText(result.substring(0,50)+"...");
+                artistTitle.setText(result.substring(0, 50) + "...");
 
             mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
         } else {

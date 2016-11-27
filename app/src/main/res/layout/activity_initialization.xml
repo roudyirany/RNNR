@@ -29,6 +29,8 @@
         android:layout_height="117dp"
         android:id="@+id/progressBar"
         android:layout_gravity="center"
+        android:indeterminate="true"
+        android:indeterminateTintMode="src_in"
         android:indeterminateTint="@android:color/holo_orange_dark"
         android:indeterminateDuration="10000" />
 

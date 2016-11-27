@@ -9,20 +9,25 @@ public class Song {
     private String path;
     private int cluster;
 
-    public Song(){
-        title=path=null;
+    public Song() {
+        title = path = null;
     }
 
-    public Song( String songTitle, String songPath) {
-        title=songTitle;
-        path=songPath;
+    public Song(String songTitle, String songPath) {
+        title = songTitle;
+        path = songPath;
     }
 
     public Song(String songPath, int bpm, int cluster) {
-        title="title";
-        path=songPath;
+        title = "title";
+        path = songPath;
     }
 
-    public String getTitle(){return title;}
-    public String getPath(){return path;}
+    public String getTitle() {
+        return title;
+    }
+
+    public String getPath() {
+        return path;
+    }
 }
