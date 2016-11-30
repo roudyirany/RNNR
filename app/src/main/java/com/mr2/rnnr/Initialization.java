@@ -4,6 +4,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.PowerManager;
+import android.os.Process;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -42,7 +43,7 @@ import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 public class Initialization extends AppCompatActivity {
 
     FrameLayout wind;
-    boolean fire = true;
+    boolean firstTime = true;
     PowerManager powerManager;
     PowerManager.WakeLock wakelock;
     TextView textView;
@@ -116,23 +117,13 @@ public class Initialization extends AppCompatActivity {
             public void onDataChange(final DataSnapshot snapshot) {
                 if (snapshot.getValue() == null) {
                     size = songList.size();
-
-                    int j = 0;
-                    while ((j + 4) < size) {
-                        if (fire) {
-                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j));
-                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 1));
-                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 2));
-                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 3));
-                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(j + 4));
-                            j = j + 5;
-                        }
+                    if (size < 128) {
+                        for (int i = 0; i < size; i++)
+                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
+                    } else {
+                        for (int i = 0; i < 128; i++)
+                            new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
                     }
-
-                    for (int i = j; i < size; i++)
-                        new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(i));
-
-
                 } else {
 
                     //iterate over online library and store keys in an array
@@ -207,34 +198,18 @@ public class Initialization extends AppCompatActivity {
                         }
 
                         if (added.size() > 0) {
-                            size = added.size();
-
+                            firstTime = false;
                             //add missing tracks
-                            int j = 0;
-                            while ((j + 4) < added.size()) {
-                                if (fire) {
-                                    int index = localLibrary.indexOf(added.get(j));
+                            if (size < 128) {
+                                for (int i = 0; i < size; i++) {
+                                    int index = localLibrary.indexOf(added.get(i));
                                     new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                    index = localLibrary.indexOf(added.get(j + 1));
-                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                    index = localLibrary.indexOf(added.get(j + 2));
-                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                    index = localLibrary.indexOf(added.get(j + 3));
-                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                    index = localLibrary.indexOf(added.get(j + 4));
-                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
-
-                                    j = j + 5;
                                 }
-                            }
-
-                            for (int i = j; i < added.size(); i++) {
-                                int index = localLibrary.indexOf(added.get(i));
-                                new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+                            } else {
+                                for (int i = 0; i < 128; i++) {
+                                    int index = localLibrary.indexOf(added.get(i));
+                                    new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+                                }
                             }
                         }
                     } else {
@@ -360,6 +335,8 @@ public class Initialization extends AppCompatActivity {
     //Background bpm processing thread
     class MyAsyncTask extends AsyncTask<Song, Integer, Void> {
         protected Void doInBackground(Song... songs) {
+            Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND + Process.THREAD_PRIORITY_MORE_FAVORABLE);
+
             //implement background tasks
             Song song = songs[0];
             int bpm = (int) AnalyzeBPM(song.getPath());
@@ -368,11 +345,6 @@ public class Initialization extends AppCompatActivity {
             Analyze(song.getPath());
 
             processed++;
-            if (processed % 5 == 0) {
-                fire = true;
-                fire = false;
-            }
-
             publishProgress((100 * processed) / (size));
 
             return null;
@@ -386,38 +358,45 @@ public class Initialization extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getValue() == null) {
-                            float[][] similarity = new float[size][size];
-                            similarity = calculateSimilarity();
-                            ArrayList<Integer> parents = new ArrayList<Integer>();
+                            Thread thread = new Thread(new Runnable() {
+                                @Override
+                                public void run() {
+                                    float[][] similarity = new float[size][size];
+                                    similarity = calculateSimilarity();
+                                    ArrayList<Integer> parents = new ArrayList<Integer>();
 
-                            mFirebaseDatabaseReference.child("clusters/0/parent/").setValue(localLibrary.get(0));
-                            mFirebaseDatabaseReference.child("library/" + localLibrary.get(0) + "/cluster").setValue(0);
-                            parents.add(0);
+                                    mFirebaseDatabaseReference.child("clusters/0/parent/").setValue(localLibrary.get(0));
+                                    mFirebaseDatabaseReference.child("library/" + localLibrary.get(0) + "/cluster").setValue(0);
+                                    parents.add(0);
 
-                            int cluster = 1;
+                                    int cluster = 1;
 
-                            for (int i = 1; i < size; i++) {
-                                float max = 1;
-                                int parent = 0;
+                                    for (int i = 1; i < size; i++) {
+                                        float max = 1;
+                                        int parent = 0;
 
-                                for (int k = 0; k < parents.size(); k++) {
-                                    if (similarity[i][parents.get(k)] < max && similarity[i][parents.get(k)] < 0.5) {
-                                        max = similarity[i][parents.get(k)];
-                                        parent = k;
+                                        for (int k = 0; k < parents.size(); k++) {
+                                            if (similarity[i][parents.get(k)] < max && similarity[i][parents.get(k)] < 0.5) {
+                                                max = similarity[i][parents.get(k)];
+                                                parent = k;
+                                            }
+                                        }
+
+                                        if (max == 1) {
+                                            mFirebaseDatabaseReference.child("clusters/" + cluster + "/parent/").setValue(localLibrary.get(i));
+                                            mFirebaseDatabaseReference.child("library/" + localLibrary.get(i) + "/cluster").setValue(cluster);
+                                            parents.add(i);
+                                            cluster++;
+                                        } else
+                                            mFirebaseDatabaseReference.child("library/" + localLibrary.get(i) + "/cluster").setValue(parent);
+
+
                                     }
+                                    checkLibrary();
                                 }
+                            });
 
-                                if (max == 1) {
-                                    mFirebaseDatabaseReference.child("clusters/" + cluster + "/parent/").setValue(localLibrary.get(i));
-                                    mFirebaseDatabaseReference.child("library/" + localLibrary.get(i) + "/cluster").setValue(cluster);
-                                    parents.add(i);
-                                    cluster++;
-                                } else
-                                    mFirebaseDatabaseReference.child("library/" + localLibrary.get(i) + "/cluster").setValue(parent);
-
-
-                            }
-                            checkLibrary();
+                            thread.start();
 
                         } else {
                             final ArrayList<String> parents = new ArrayList<String>();
@@ -498,6 +477,15 @@ public class Initialization extends AppCompatActivity {
                 });
 
 
+            } else {
+                if (processed + 129 < size) {
+                    if (firstTime)
+                        new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get((processed - 1) + 128));
+                    else {
+                        int index = localLibrary.indexOf(addedSongs.get((processed - 1) + 128));
+                        new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
+                    }
+                }
             }
 
             if (values[0] > 0)

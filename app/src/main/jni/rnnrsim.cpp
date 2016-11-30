@@ -18,7 +18,7 @@ extern "C" void Java_com_mr2_rnnr_Initialization_Analyze(JNIEnv *env, jobject th
     musly_track *track;
     track = musly_track_alloc(mj);
 
-    musly_track_analyze_audiofile(mj, path, 15, -48, track);
+    musly_track_analyze_audiofile(mj, path, 30, -48, track);
     tracks.push_back(track);
 }
 
