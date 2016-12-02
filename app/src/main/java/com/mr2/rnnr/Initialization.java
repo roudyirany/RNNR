@@ -245,7 +245,7 @@ public class Initialization extends AppCompatActivity {
 
             do {
                 String thisPath = musicCursor.getString(dataColumn);
-                String thisTitle = (thisPath.substring(thisPath.lastIndexOf("/") + 1, thisPath.length() - 4)).replace(".", "").replace(" ", "").replace("#", "").replace("[", "").replace("]", "");
+                String thisTitle = (thisPath.substring(thisPath.lastIndexOf("/") + 1, thisPath.length() - 4)).replace(".", "").replace(" ", "").replace("#", "").replace("[", "").replace("]", "").replace("$","s");
                 songList.add(new Song(thisTitle, thisPath));
             }
             while (musicCursor.moveToNext());
@@ -436,7 +436,7 @@ public class Initialization extends AppCompatActivity {
                                             int parent = 0;
 
                                             for (int k = 0; k < parentsIndex.size(); k++) {
-                                                if (similarity[i][parentsIndex.get(k)] < max && similarity[i][parentsIndex.get(k)] < 0.5) {
+                                                if (similarity[i][parentsIndex.get(k)] < max && similarity[i][parentsIndex.get(k)] < 0.65) {
                                                     max = similarity[i][parentsIndex.get(k)];
                                                     parent = k;
                                                 }
@@ -478,11 +478,11 @@ public class Initialization extends AppCompatActivity {
 
 
             } else {
-                if (processed + 129 < size) {
+                if (processed + 127 < size) {
                     if (firstTime)
-                        new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get((processed - 1) + 128));
+                        new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(processed + 127));
                     else {
-                        int index = localLibrary.indexOf(addedSongs.get((processed - 1) + 128));
+                        int index = localLibrary.indexOf(addedSongs.get(processed + 128));
                         new MyAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR, songList.get(index));
                     }
                 }
