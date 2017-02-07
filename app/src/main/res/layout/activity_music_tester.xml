@@ -30,13 +30,24 @@
 
     <TextView
         android:layout_width="match_parent"
-        android:id="@+id/artistTitle"
+        android:id="@+id/title"
         android:fontFamily="sans-serif-thin"
         android:textAlignment="center"
         android:textSize="20sp"
         android:textStyle="bold"
         android:textColor="@android:color/black"
-        android:layout_height="50dp" />
+        android:layout_height="wrap_content"
+        android:height="25dp" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:id="@+id/artist"
+        android:fontFamily="sans-serif-thin"
+        android:textAlignment="center"
+        android:textSize="20sp"
+        android:textColor="@android:color/black"
+        android:layout_height="wrap_content"
+        android:height="25dp" />
 
     <LinearLayout
         android:orientation="horizontal"

@@ -174,20 +174,41 @@ public class MusicTester extends AppCompatActivity {
 
         //Like button functionality
         final ImageView like = (ImageView) findViewById(R.id.like);
-        like.setOnClickListener(new View.OnClickListener() {
+        /*like.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
                 nextSong();
             }
-        });
+        });*/
 
     }
 
     //Loads the next song randomly
-    public void loadSong() {
+    public boolean loadSong() {
 
-        if (songsLoaded < size) {
+        //Enable done button when enough songs have been rated
+        if (songsLoaded > (int) Math.ceil(0.1 * size)) {
+            Button button = (Button) findViewById(R.id.done);
+            button.setEnabled(true);
+
+            button.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    mediaPlayer.stop();
+                    mediaPlayer.release();
+                    countDownTimer.cancel();
+                    mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
+                    mFirebaseDatabaseReference.child("testing").setValue(true);
+
+                    Intent intent = new Intent(MusicTester.this, MainMenu.class);
+                    startActivity(intent);
+                    finish();
+                }
+            });
+        }
+
+        if (songsLoaded < size - (int) Math.ceil(0.1 * size)) {
             songsLoaded++;
             int n = (int) (Math.random() * (songList.size() - 1) + 0);
 
@@ -214,45 +235,33 @@ public class MusicTester extends AppCompatActivity {
             //Displays artist name and title
             String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
             String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-            TextView artistTitle = (TextView) findViewById(R.id.artistTitle);
+            TextView Artist = (TextView) findViewById(R.id.artist);
+            TextView Title = (TextView) findViewById(R.id.title);
 
             if (artist == null)
                 artist = "Unknown Artist";
             if (title == null)
                 title = "Unknown Track";
 
-            String result = artist + " - " + title;
-            if (result.length() <= 50)
-                artistTitle.setText(result);
+            if (artist.length() <= 20)
+                Artist.setText(artist);
             else
-                artistTitle.setText(result.substring(0, 50) + "...");
+                Artist.setText(artist.substring(0, 20) + "...");
+
+            if (title.length() <= 20)
+                Title.setText(title);
+            else
+                Title.setText(title.substring(0, 20) + "...");
 
             mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
+            return true;
         } else {
+            mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
+            mFirebaseDatabaseReference.child("testing").setValue(true);
             Intent intent = new Intent(MusicTester.this, MainMenu.class);
             startActivity(intent);
             finish();
-        }
-
-        //Enable done button when enough songs have been rated
-        if (songsLoaded > (int) Math.ceil(0.1 * size)) {
-            Button button = (Button) findViewById(R.id.done);
-            button.setEnabled(true);
-
-            button.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mediaPlayer.stop();
-                    mediaPlayer.release();
-                    countDownTimer.cancel();
-                    mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
-                    mFirebaseDatabaseReference.child("testing").setValue(true);
-
-                    Intent intent = new Intent(MusicTester.this, MainMenu.class);
-                    startActivity(intent);
-                    finish();
-                }
-            });
+            return false;
         }
 
     }
@@ -296,30 +305,31 @@ public class MusicTester extends AppCompatActivity {
             countDownTimer.cancel();
         timer = 20000;
 
-        loadSong();
-        mediaPlayer.seekTo(30000);
+        if (loadSong()) {
+            mediaPlayer.seekTo(30000);
 
-        mediaPlayer.start();
-        imageView.setImageResource(android.R.drawable.ic_media_pause);
-        imageView.setTag("pause");
+            mediaPlayer.start();
+            imageView.setImageResource(android.R.drawable.ic_media_pause);
+            imageView.setTag("pause");
 
-        countDownTimer = new CountDownTimer(timer, 1000) {
+            countDownTimer = new CountDownTimer(timer, 1000) {
 
-            public void onTick(long millisUntilFinished) {
-                timer = timer - 1000;
-                if (timer > 1000)
-                    progressBar.setProgress((20000 - timer) / 1000);
-                else
-                    progressBar.setProgress(20);
-            }
+                public void onTick(long millisUntilFinished) {
+                    timer = timer - 1000;
+                    if (timer > 1000)
+                        progressBar.setProgress((20000 - timer) / 1000);
+                    else
+                        progressBar.setProgress(20);
+                }
 
-            public void onFinish() {
-                mediaPlayer.pause();
-                timer = 20000;
-                imageView.setImageResource(android.R.drawable.ic_media_play);
-                imageView.setTag("play");
-                progressBar.setProgress(0);
-            }
-        }.start();
+                public void onFinish() {
+                    mediaPlayer.pause();
+                    timer = 20000;
+                    imageView.setImageResource(android.R.drawable.ic_media_play);
+                    imageView.setTag("play");
+                    progressBar.setProgress(0);
+                }
+            }.start();
+        }
     }
 }

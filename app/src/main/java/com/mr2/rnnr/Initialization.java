@@ -105,12 +105,9 @@ public class Initialization extends AppCompatActivity {
         for (int i = 0; i < songList.size(); i++)
             localLibrary.add(songList.get(i).getTitle());
 
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
+        //Power on Musly similarity component
         MuslyPowerOn();
+
         //Checks if user exists and updates library accordingly
         mFirebaseDatabaseReference.child("library").addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
