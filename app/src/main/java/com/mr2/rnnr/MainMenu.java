@@ -1,93 +1,74 @@
 package com.mr2.rnnr;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-
-import android.app.Activity;
-import android.os.Bundle;
+import android.graphics.Color;
+import android.support.design.widget.TabLayout;
+import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
-import android.view.View;
-import android.widget.ExpandableListView;
-import android.widget.ExpandableListView.OnChildClickListener;
-import android.widget.ExpandableListView.OnGroupClickListener;
-import android.widget.ExpandableListView.OnGroupCollapseListener;
-import android.widget.ExpandableListView.OnGroupExpandListener;
-import android.widget.Toast;
+import android.os.Bundle;
+import android.support.v7.widget.Toolbar;
+import android.widget.TabHost;
+import android.widget.TextView;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public class MainMenu extends AppCompatActivity {
 
-    ExpandableListAdapter listAdapter;
-    ExpandableListView expListView;
-    List<String> listDataHeader;
-    HashMap<String, List<String>> listDataChild;
+    private Toolbar toolbar;
+    private TabLayout tabLayout;
+    private ViewPager viewPager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.main_menu);
+        setContentView(R.layout.activity_main_menu);
 
-        // get the listview
-        expListView = (ExpandableListView) findViewById(R.id.expandableList);
+        viewPager = (ViewPager) findViewById(R.id.viewpager);
+        setupViewPager(viewPager);
 
-        // preparing list data
-        prepareListData();
+        tabLayout = (TabLayout) findViewById(R.id.tabs);
+        tabLayout.setupWithViewPager(viewPager);
 
-        listAdapter = new ExpandableListAdapter(this, listDataHeader, listDataChild);
-
-        // setting list adapter
-        expListView.setAdapter(listAdapter);
     }
 
-    /*
-     * Preparing the list data
-     */
-    private void prepareListData() {
-        listDataHeader = new ArrayList<String>();
-        listDataChild = new HashMap<String, List<String>>();
+    private void setupViewPager(ViewPager viewPager) {
+        ViewPagerAdapter adapter = new ViewPagerAdapter(getSupportFragmentManager());
+        adapter.addFragment(new homescreen(), "HOME");
+        adapter.addFragment(new history(), "HISTORY");
+        adapter.addFragment(new settings(), "SETTINGS");
+        viewPager.setAdapter(adapter);
+    }
 
-        // Adding child data
-        listDataHeader.add("Beginner");
-        listDataHeader.add("Walk-Jog");
-        listDataHeader.add("Sprints");
-        listDataHeader.add("Pyramid Intervals");
-        listDataHeader.add("Quick Workout");
-        listDataHeader.add("Fat Burner");
-        listDataHeader.add("Custom");
+    class ViewPagerAdapter extends FragmentPagerAdapter {
+        private final List<Fragment> mFragmentList = new ArrayList<>();
+        private final List<String> mFragmentTitleList = new ArrayList<>();
 
-        // Adding child data
-        List<String> Beginner = new ArrayList<String>();
-        Beginner.add("30 minutes");
-        Beginner.add("40 minutes");
+        public ViewPagerAdapter(FragmentManager manager) {
+            super(manager);
+        }
 
-        List<String> walkJog = new ArrayList<String>();
-        walkJog.add("42 minutes");
-        walkJog.add("60 minutes");
+        @Override
+        public Fragment getItem(int position) {
+            return mFragmentList.get(position);
+        }
 
-        List<String> Sprints = new ArrayList<String>();
-        Sprints.add("30 minutes");
-        Sprints.add("60 minutes");
+        @Override
+        public int getCount() {
+            return mFragmentList.size();
+        }
 
-        List<String> Pyramids = new ArrayList<String>();
-        Pyramids.add("25 minutes");
-        Pyramids.add("30 minutes");
-        Pyramids.add("60 minutes");
+        public void addFragment(Fragment fragment, String title) {
+            mFragmentList.add(fragment);
+            mFragmentTitleList.add(title);
+        }
 
-        List<String> Quickie = new ArrayList<String>();
-        Quickie.add("20 minutes");
-
-        List<String> fatBurner = new ArrayList<String>();
-        fatBurner.add("45 minutes");
-
-        List<String> custom = new ArrayList<String>();
-        custom.add("Tailor your own workout");
-
-        listDataChild.put(listDataHeader.get(0), Beginner); // Header, Child data
-        listDataChild.put(listDataHeader.get(1), walkJog);
-        listDataChild.put(listDataHeader.get(2), Sprints);
-        listDataChild.put(listDataHeader.get(3), Pyramids);
-        listDataChild.put(listDataHeader.get(4), Quickie);
-        listDataChild.put(listDataHeader.get(5), fatBurner);
-        listDataChild.put(listDataHeader.get(6), custom);
+        @Override
+        public CharSequence getPageTitle(int position) {
+            return mFragmentTitleList.get(position);
+        }
     }
 }
+

@@ -136,6 +136,10 @@ public class Initialization extends AppCompatActivity {
                     //intersection between cloud and local library
                     intersection.retainAll(localLibrary);
 
+                    if(intersection.isEmpty())
+                        mFirebaseDatabaseReference.child("clusters").setValue(null);
+
+
                     //additions to local library
                     added.removeAll(intersection);
                     addedSongs = new ArrayList<String>(added);
@@ -305,13 +309,13 @@ public class Initialization extends AppCompatActivity {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
                         if (dataSnapshot.getValue() != null) {
-                            Intent intent = new Intent(Initialization.this, MainMenu.class);
+                            Intent intent = new Intent(Initialization.this, MainMenu.class); //mainmenu
                             startActivity(intent);
 
                             finish();
                         } else {
 
-                            Intent intent = new Intent(Initialization.this, MusicTester.class);
+                            Intent intent = new Intent(Initialization.this, MainMenu.class); //music tester
                             startActivity(intent);
 
                             finish();
@@ -507,13 +511,13 @@ public class Initialization extends AppCompatActivity {
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             if (dataSnapshot.getValue() != null) {
-                                Intent intent = new Intent(Initialization.this, MainMenu.class);
+                                Intent intent = new Intent(Initialization.this, MainMenu.class); //mainmenu
                                 startActivity(intent);
 
                                 finish();
                             } else {
 
-                                Intent intent = new Intent(Initialization.this, MusicTester.class);
+                                Intent intent = new Intent(Initialization.this, MainMenu.class); //musictester
                                 startActivity(intent);
 
                                 finish();
