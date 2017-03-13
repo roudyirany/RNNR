@@ -37,7 +37,9 @@
             android:exported="false" />
 
         <activity android:name=".MainMenu" />
-        <activity android:name=".homescreen"></activity>
+
+        <service android:name=".MusicService" />
+
     </application>
 
 </manifest>
