@@ -1,5 +1,6 @@
 package com.mr2.rnnr;
 
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.BroadcastReceiver;
@@ -17,6 +18,7 @@ import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -43,11 +45,10 @@ public class MusicService extends Service implements SensorEventListener, Google
     private Sensor StepCounter;
     private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
     private double stepCounter = 0;
-    private int stepMonitor = 0;
     PowerManager powerManager;
     PowerManager.WakeLock wakelock;
-    double stride_length = 0;
-    String activityString = "still";
+    String activityString = "Walking";
+    boolean activityStarted = false;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -90,21 +91,42 @@ public class MusicService extends Service implements SensorEventListener, Google
         StepCounter = senSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         senSensorManager.registerListener(this, StepCounter, SensorManager.SENSOR_DELAY_FASTEST);
 
+        //Notification
+        NotificationCompat.Builder builder =
+                new NotificationCompat.Builder(this)
+                        .setSmallIcon(R.mipmap.ic_launcher)
+                        .setContentTitle("RNNR")
+                        .setContentText("Monitoring on.")
+                        .setOngoing(true);
+        int NOTIFICATION_ID = 12345;
+
+        Intent targetIntent = new Intent(this, MainMenu.class);
+        PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
+        builder.setContentIntent(contentIntent);
+        NotificationManager nManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nManager.notify(NOTIFICATION_ID, builder.build());
+
     }
 
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startid){
         final Context context = this;
-        new CountDownTimer(90000, 1000) {
 
+        //Activity detection
+        new CountDownTimer(30000, 1000) {
             public void onTick(long millisUntilFinished) {
+
             }
 
             public void onFinish() {
-                requestActivityUpdates();
-                double distance = stride_length*stepCounter;
-                double speed = (distance/1000.0)/(10.0/3600.0);
+                if(!activityStarted) {
+                    requestActivityUpdates();
+                    activityStarted = true;
+                }
+
+                double distance = stepCounter;
+                double speed = (distance/1000.0)/(30.0/3600.0);
                 DecimalFormat df = new DecimalFormat("####0.0");
                 speed = Double.valueOf(df.format(speed));
 
@@ -113,13 +135,36 @@ public class MusicService extends Service implements SensorEventListener, Google
                 RTReturn.putExtra("data", dataString);
                 LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
 
-                stepMonitor++;
                 stepCounter = 0;
                 this.start();
             }
         }.start();
 
+        //Progress update
+        new CountDownTimer(100000, 1000){
+            int i=0;
+            @Override
+            public void onTick(long millisUntilFinished) {
+                i++;
+                Intent RTReturn = new Intent(MainMenu.RECEIVE_PROGRESS);
+                RTReturn.putExtra("progress", i);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+            }
+
+            @Override
+            public void onFinish() {
+
+            }
+        }.start();
+
         return START_STICKY;
+    }
+
+    @Override
+    public void onTaskRemoved(Intent rootIntent) {
+        NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        mNotificationManager.cancel(12345);
+        stopSelf();
     }
 
     @Override
@@ -132,7 +177,7 @@ public class MusicService extends Service implements SensorEventListener, Google
             if(activityString.equals("Walking"))
                 stepCounter = stepCounter + 0.726;
             else if(activityString.equals("Running"))
-                stepCounter = stepCounter + 1.05;
+                stepCounter = stepCounter + 0.826;
         }
 
     }

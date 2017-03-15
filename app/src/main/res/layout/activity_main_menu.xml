@@ -239,7 +239,7 @@
                     android:textColor="@android:color/black"/>
 
                 <TextView
-                    android:text="0 Km/h"
+                    android:text="0.0 Km/h"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/textView7"
@@ -266,7 +266,7 @@
                     android:textColor="@android:color/black"/>
 
                 <TextView
-                    android:text="0 Km/h"
+                    android:text="0.0 Km/h"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:id="@+id/textView9"

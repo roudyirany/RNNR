@@ -19,6 +19,8 @@ import java.util.List;
 
 public class ActivityRecognizedService extends IntentService {
 
+    DetectedActivity previousActivity;
+
     public ActivityRecognizedService() {
         super("ActivityRecognizedService");
     }
@@ -31,7 +33,7 @@ public class ActivityRecognizedService extends IntentService {
     protected void onHandleIntent(Intent intent) {
         ActivityRecognitionResult result = ActivityRecognitionResult.extractResult(intent);
         Intent i = new Intent(Constants.STRING_ACTION);
-        int confidence = 0;
+        int confidence = -1;
 
         List<DetectedActivity> detectedActivities = result.getProbableActivities();
 
@@ -40,8 +42,12 @@ public class ActivityRecognizedService extends IntentService {
                 if(activity.getConfidence() > confidence){
                     confidence = activity.getConfidence();
                     i.putExtra(Constants.STRING_EXTRA, activity);
+                    previousActivity = activity;
                 }
             }
+
+            else
+                i.putExtra(Constants.STRING_EXTRA, previousActivity);
         }
         LocalBroadcastManager.getInstance(this).sendBroadcast(i);
     }

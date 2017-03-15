@@ -298,7 +298,7 @@ public class Initialization extends AppCompatActivity {
                 else
                     y = -0.0681 * x + 11.14;
 
-                DecimalFormat df = new DecimalFormat("####0.00");
+                DecimalFormat df = new DecimalFormat("####0.0");
                 mFirebaseDatabaseReference.child("targetSpeed").setValue(df.format(y));
                 popup.dismiss();
                 wind.getForeground().setAlpha(0);
