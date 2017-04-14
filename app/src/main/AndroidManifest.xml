@@ -37,10 +37,14 @@
             android:exported="false" />
 
         <activity android:name=".MainMenu"
+            android:configChanges="keyboardHidden|orientation"
+            android:screenOrientation="portrait"
             android:launchMode="singleInstance"
             />
 
         <service android:name=".MusicService" />
+        <service android:name=".PlanningIntentService" />
+
 
     </application>
 

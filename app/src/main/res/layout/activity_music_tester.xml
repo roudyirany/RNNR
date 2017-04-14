@@ -16,8 +16,9 @@
 
     <ImageView
         android:layout_width="match_parent"
-        android:layout_height="324dp"
-        android:id="@+id/imgAlbum" />
+        android:layout_height="282dp"
+        android:id="@+id/imgAlbum"
+        android:layout_weight="0.46" />
 
     <ProgressBar
         style="?android:attr/progressBarStyleHorizontal"
@@ -119,13 +120,35 @@
             android:tint="@android:color/black"/>
     </LinearLayout>
 
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Done"
-        android:layout_gravity="center"
-        android:background="@android:color/holo_orange_dark"
-        android:id="@+id/done"
-        android:layout_marginBottom="0dp" />
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="30dp">
+
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="100dp"
+            android:text="Done"
+            android:layout_gravity="center"
+            android:background="@android:color/holo_orange_dark"
+            android:id="@+id/done"
+            android:layout_marginBottom="0dp"
+            android:layout_weight="1"
+            />
+
+        <Button
+            android:layout_width="100dp"
+            android:layout_height="wrap_content"
+            android:text="Like transition"
+            android:layout_gravity="center"
+            android:background="@android:color/black"
+            android:id="@+id/likeT"
+            android:layout_marginBottom="0dp"
+            android:layout_marginLeft="4dp"
+            android:layout_weight="1"
+            android:textColor="@android:color/holo_orange_dark"
+            android:enabled="false"/>
+
+    </LinearLayout>
 
 </LinearLayout>

@@ -56,6 +56,8 @@ public class Initialization extends AppCompatActivity {
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
     private DatabaseReference mFirebaseDatabaseReference;
+    double weightT;
+    double weightTra;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,7 +90,7 @@ public class Initialization extends AppCompatActivity {
         }
 
         FirebaseDatabase.getInstance().setPersistenceEnabled(true);
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseAuth.getCurrentUser().getUid());
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
         mFirebaseDatabaseReference.keepSynced(true);
 
         checkLibrary();
@@ -136,7 +138,7 @@ public class Initialization extends AppCompatActivity {
                     //intersection between cloud and local library
                     intersection.retainAll(localLibrary);
 
-                    if(intersection.isEmpty())
+                    if (intersection.isEmpty())
                         mFirebaseDatabaseReference.child("clusters").setValue(null);
 
 
@@ -166,10 +168,32 @@ public class Initialization extends AppCompatActivity {
                                             @Override
                                             public void onDataChange(DataSnapshot dataSnapshot) {
 
-                                                //If no other tracks from the cluster exist delete that cluster since it is non existen
-                                                if (dataSnapshot.getValue() == null)
+                                                //If no other tracks from the cluster exist delete that cluster since it is non existent
+                                                if (dataSnapshot.getValue() == null) {
+
+                                                    //Update weights
+                                                    updateWeightsSubtract();
+
                                                     mFirebaseDatabaseReference.child("clusters/" + cluster).setValue(null);
-                                                    // If another track from the same cluster exists set it as that cluster's parent
+
+                                                    mFirebaseDatabaseReference.child("clusters").addListenerForSingleValueEvent(new ValueEventListener() {
+                                                        @Override
+                                                        public void onDataChange(DataSnapshot dataSnapshot) {
+                                                            int clusters = (int) (long) dataSnapshot.getChildrenCount();
+                                                            for (int i = 0; i < clusters; i++) {
+                                                                mFirebaseDatabaseReference.child("transitions").child("clusters").child(cluster + "-" + i).setValue(null);
+                                                                mFirebaseDatabaseReference.child("transitions").child("clusters").child(i + "-" + cluster).setValue(null);
+                                                            }
+                                                        }
+
+                                                        @Override
+                                                        public void onCancelled(DatabaseError databaseError) {
+
+                                                        }
+                                                    });
+
+                                                }
+                                                // If another track from the same cluster exists set it as that cluster's parent
                                                 else {
                                                     String key = null;
                                                     for (DataSnapshot postSnapshot : dataSnapshot.getChildren())
@@ -246,7 +270,9 @@ public class Initialization extends AppCompatActivity {
 
             do {
                 String thisPath = musicCursor.getString(dataColumn);
-                String thisTitle = (thisPath.substring(thisPath.lastIndexOf("/") + 1, thisPath.length() - 4)).replace(".", "").replace(" ", "").replace("#", "").replace("[", "").replace("]", "").replace("$","s");
+                String[] split = thisPath.split("/");
+                String thisPath1 = split[split.length - 2] + "-" + split[split.length - 1];
+                String thisTitle = (thisPath1.substring(0, thisPath1.length() - 4)).replace(".", "").replace(" ", "").replace("#", "").replace("[", "").replace("]", "").replace("$", "s");
                 songList.add(new Song(thisTitle, thisPath));
             }
             while (musicCursor.moveToNext());
@@ -315,7 +341,7 @@ public class Initialization extends AppCompatActivity {
                             finish();
                         } else {
 
-                            Intent intent = new Intent(Initialization.this, MainMenu.class); //music tester
+                            Intent intent = new Intent(Initialization.this, MusicTester.class); //music tester
                             startActivity(intent);
 
                             finish();
@@ -445,7 +471,9 @@ public class Initialization extends AppCompatActivity {
                                             }
 
                                             if (max == 1) {
-                                                mFirebaseDatabaseReference.child("clusters/" + cluster + "/parent/").setValue(addedSongs.get(i));
+                                                updateWeightsAdd();
+                                                mFirebaseDatabaseReference.child("clusters/" + cluster + "/parent").setValue(addedSongs.get(i));
+                                                mFirebaseDatabaseReference.child("clusters/" + cluster + "/weight").setValue(weightT);
                                                 mFirebaseDatabaseReference.child("library/" + addedSongs.get(i) + "/cluster").setValue(cluster);
                                                 parents.add(addedSongs.get(i));
                                                 parentsIndex.add(i);
@@ -517,7 +545,7 @@ public class Initialization extends AppCompatActivity {
                                 finish();
                             } else {
 
-                                Intent intent = new Intent(Initialization.this, MainMenu.class); //musictester
+                                Intent intent = new Intent(Initialization.this, MusicTester.class); //musictester
                                 startActivity(intent);
 
                                 finish();
@@ -556,6 +584,124 @@ public class Initialization extends AppCompatActivity {
 
             }
         });
+    }
+
+    //Update weights
+    public void updateWeightsAdd() {
+        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final int liked = (int) (long) dataSnapshot.child("likedSongs").getValue();
+                final int likedTra = (int) (long) dataSnapshot.child("likedTransitions").getValue();
+
+                final int clusters = (int) dataSnapshot.child("clusters").getChildrenCount();
+                weightT = 1.0 / ((double) (liked + clusters + 11 + 1));
+                weightTra = 1.0 / ((double) (likedTra + (clusters + 1) * (clusters + 1) + 11 * 11));
+
+                int i = 0;
+                for (DataSnapshot postSnapshot : dataSnapshot.child("clusters").getChildren()) {
+                    Double weight = (Double) postSnapshot.child("weight").getValue();
+                    if (weight == null)
+                        weight = 0.0;
+                    weight = weight - 1.0 / ((double) (liked + clusters + 11));
+                    weight = weight + weightT;
+                    mFirebaseDatabaseReference.child("clusters").child(Integer.toString(i)).child("weight").setValue(weight);
+
+                    for (int j = 0; j < dataSnapshot.child("clusters").getChildrenCount(); j++) {
+                        Double weightTr = (Double) dataSnapshot.child("transitions").child("clusters").child(i + "-" + j).getValue();
+                        if (weightTr == null)
+                            weightTr = 0.0;
+                        weightTr = weightTr - 1.0 / ((double) (likedTra + (clusters) * (clusters) + 11 * 11));
+                        weightTr = weightTr + weightTra;
+                        mFirebaseDatabaseReference.child("transitions").child("clusters").child(i + "-" + j).setValue(weightTr);
+                    }
+
+                    i++;
+                }
+
+
+                for (int j = 0; j < 11; j++) {
+                    Double weight = (Double) dataSnapshot.child("bpms").child(Integer.toString(j)).child("weight").getValue();
+                    weight = weight - 1.0 / ((double) (liked + clusters + 11));
+                    weight = weight + weightT;
+                    mFirebaseDatabaseReference.child("bpms").child(Integer.toString(j)).child("weight").setValue(weight);
+
+                    for (int k = 0; k < dataSnapshot.child("clusters").getChildrenCount(); k++) {
+                        Double weightTr = (Double) dataSnapshot.child("transitions").child("bpms").child(j + "-" + k).getValue();
+                        weightTr = weightTr - 1.0 / ((double) (likedTra + (clusters) * (clusters) + 11 * 11));
+                        weightTr = weightTr + weightTra;
+                        mFirebaseDatabaseReference.child("transitions").child("bpms").child(j + "-" + k).setValue(weightTr);
+                    }
+
+                    i++;
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+    //Update weights
+    public void updateWeightsSubtract() {
+        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final int liked = (int) (long) dataSnapshot.child("likedSongs").getValue();
+                final int likedTra = (int) (long) dataSnapshot.child("likedTransitions").getValue();
+
+                final int clusters = (int) dataSnapshot.child("clusters").getChildrenCount();
+                weightT = 1.0 / ((double) (liked + clusters + 11 - 1));
+                weightTra = 1.0 / ((double) (likedTra + (clusters - 1) * (clusters - 1) + 11 * 11));
+
+                int i = 0;
+                for (DataSnapshot postSnapshot : dataSnapshot.child("clusters").getChildren()) {
+                    Double weight = (Double) postSnapshot.child("weight").getValue();
+                    if (weight == null)
+                        weight = 0.0;
+                    weight = weight - 1.0 / ((double) (liked + clusters + 11));
+                    weight = weight + weightT;
+                    mFirebaseDatabaseReference.child("clusters").child(Integer.toString(i)).child("weight").setValue(weight);
+
+                    for (int j = 0; j < dataSnapshot.child("clusters").getChildrenCount(); j++) {
+                        Double weightTr = (Double) dataSnapshot.child("transitions").child("clusters").child(i + "-" + j).getValue();
+                        if (weightTr == null)
+                            weightTr = 0.0;
+                        weightTr = weightTr - 1.0 / ((double) (likedTra + (clusters) * (clusters) + 11 * 11));
+                        weightTr = weightTr + weightTra;
+                        mFirebaseDatabaseReference.child("transitions").child("clusters").child(i + "-" + j).setValue(weightTr);
+                    }
+
+                    i++;
+                }
+
+
+                for (int j = 0; j < 11; j++) {
+                    Double weight = (Double) dataSnapshot.child("bpms").child(Integer.toString(j)).child("weight").getValue();
+                    weight = weight - 1.0 / ((double) (liked + clusters + 11));
+                    weight = weight + weightT;
+                    mFirebaseDatabaseReference.child("bpms").child(Integer.toString(j)).child("weight").setValue(weight);
+
+                    for (int k = 0; k < dataSnapshot.child("clusters").getChildrenCount(); k++) {
+                        Double weightTr = (Double) dataSnapshot.child("transitions").child("bpms").child(j + "-" + k).getValue();
+                        weightTr = weightTr - 1.0 / ((double) (likedTra + (clusters) * (clusters) + 11 * 11));
+                        weightTr = weightTr + weightTra;
+                        mFirebaseDatabaseReference.child("transitions").child("bpms").child(j + "-" + k).setValue(weightTr);
+                    }
+
+                    i++;
+                }
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
     }
 
     //Native C Libraries & Functions

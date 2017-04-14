@@ -12,6 +12,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
 import android.os.IBinder;
@@ -30,10 +31,18 @@ import com.google.android.gms.location.ActivityRecognition;
 import com.google.android.gms.location.DetectedActivity;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DataSnapshot;
+import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
+import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
+import java.util.ArrayList;
+import java.util.Random;
+
+import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 
 /**
  * Created by roudyirany on 3/13/17.
@@ -49,6 +58,9 @@ public class MusicService extends Service implements SensorEventListener, Google
     PowerManager.WakeLock wakelock;
     String activityString = "Walking";
     boolean activityStarted = false;
+    ArrayList<Integer> BestTrajectory;
+    String nextSong;
+    Context context;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -64,6 +76,12 @@ public class MusicService extends Service implements SensorEventListener, Google
 
     @Override
     public void onCreate() {
+        // Initialize Firebase Auth
+        mFirebaseAuth = FirebaseAuth.getInstance();
+        mFirebaseUser = mFirebaseAuth.getCurrentUser();
+
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
+        BestTrajectory = new ArrayList<Integer>();
 
         mApiClient = new GoogleApiClient.Builder(this)
                 .addApi(ActivityRecognition.API)
@@ -84,7 +102,7 @@ public class MusicService extends Service implements SensorEventListener, Google
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/speed");
+        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
 
 
         senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
@@ -106,12 +124,13 @@ public class MusicService extends Service implements SensorEventListener, Google
         NotificationManager nManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nManager.notify(NOTIFICATION_ID, builder.build());
 
+
     }
 
 
     @Override
-    public int onStartCommand(Intent intent, int flags, int startid){
-        final Context context = this;
+    public int onStartCommand(Intent intent, int flags, int startid) {
+        context = this;
 
         //Activity detection
         new CountDownTimer(30000, 1000) {
@@ -120,17 +139,17 @@ public class MusicService extends Service implements SensorEventListener, Google
             }
 
             public void onFinish() {
-                if(!activityStarted) {
+                if (!activityStarted) {
                     requestActivityUpdates();
                     activityStarted = true;
                 }
 
                 double distance = stepCounter;
-                double speed = (distance/1000.0)/(30.0/3600.0);
+                double speed = (distance / 1000.0) / (30.0 / 3600.0);
                 DecimalFormat df = new DecimalFormat("####0.0");
                 speed = Double.valueOf(df.format(speed));
 
-                String dataString = Double.toString(speed)+" Km/h";
+                String dataString = Double.toString(speed) + " Km/h";
                 Intent RTReturn = new Intent(MainMenu.RECEIVE_DATA);
                 RTReturn.putExtra("data", dataString);
                 LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
@@ -140,22 +159,7 @@ public class MusicService extends Service implements SensorEventListener, Google
             }
         }.start();
 
-        //Progress update
-        new CountDownTimer(100000, 1000){
-            int i=0;
-            @Override
-            public void onTick(long millisUntilFinished) {
-                i++;
-                Intent RTReturn = new Intent(MainMenu.RECEIVE_PROGRESS);
-                RTReturn.putExtra("progress", i);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
-            }
-
-            @Override
-            public void onFinish() {
-
-            }
-        }.start();
+        startService(new Intent(context, PlanningIntentService.class));
 
         return START_STICKY;
     }
@@ -172,11 +176,10 @@ public class MusicService extends Service implements SensorEventListener, Google
 
         Sensor mySensor = event.sensor;
 
-        if(mySensor.getType() == Sensor.TYPE_STEP_COUNTER)
-        {
-            if(activityString.equals("Walking"))
+        if (mySensor.getType() == Sensor.TYPE_STEP_COUNTER) {
+            if (activityString.equals("Walking"))
                 stepCounter = stepCounter + 0.726;
-            else if(activityString.equals("Running"))
+            else if (activityString.equals("Running"))
                 stepCounter = stepCounter + 0.826;
         }
 
@@ -205,7 +208,7 @@ public class MusicService extends Service implements SensorEventListener, Google
     //Activity Recognition
     public String getDetectedActivity(int detectedActivityType) {
         Resources resources = this.getResources();
-        switch(detectedActivityType) {
+        switch (detectedActivityType) {
             case DetectedActivity.IN_VEHICLE:
                 return resources.getString(R.string.in_vehicle);
             case DetectedActivity.ON_BICYCLE:
@@ -254,4 +257,5 @@ public class MusicService extends Service implements SensorEventListener, Google
             Log.e("status: ", "Error: " + status.getStatusMessage());
         }
     }
+
 }

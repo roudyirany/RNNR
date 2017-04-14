@@ -29,11 +29,22 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Iterator;
+import java.util.Map;
 import java.util.Random;
+import java.util.Set;
 
 public class MusicTester extends AppCompatActivity {
 
     ArrayList<String> songList;
+    ArrayList<String> songNames;
+    ArrayList<String> likedSongs;
+    ArrayList<ArrayList<String>> likeTransitions;
+    ArrayList<Double> weightC;
+    ArrayList<Double> weightB;
+    HashMap weightTC;
+    HashMap weightTB;
     int songsLoaded = 0;
     int size;
     ArrayList<Integer> songListNumbers;
@@ -44,6 +55,7 @@ public class MusicTester extends AppCompatActivity {
     int currentVol;
     SeekBar volumeBar;
     AudioManager audioManager;
+    Button likeT;
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -56,6 +68,14 @@ public class MusicTester extends AppCompatActivity {
         setContentView(R.layout.activity_music_tester);
 
         songList = new ArrayList<String>();
+        likedSongs = new ArrayList<String>();
+        likeTransitions = new ArrayList<ArrayList<String>>();
+        songNames = new ArrayList<String>();
+        weightC = new ArrayList<Double>();
+        weightB = new ArrayList<Double>();
+        weightTC = new HashMap();
+        weightTB = new HashMap();
+        likeT = (Button) findViewById(R.id.likeT);
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -76,6 +96,7 @@ public class MusicTester extends AppCompatActivity {
                 for (DataSnapshot postSnapshot : snapshot.getChildren()) {
                     String s = postSnapshot.child("path").getValue().toString();
                     songList.add(s);
+                    songNames.add(postSnapshot.getKey());
                 }
 
                 size = songList.size();
@@ -174,13 +195,25 @@ public class MusicTester extends AppCompatActivity {
 
         //Like button functionality
         final ImageView like = (ImageView) findViewById(R.id.like);
-        /*like.setOnClickListener(new View.OnClickListener() {
+        like.setOnClickListener(new View.OnClickListener() {
 
             @Override
             public void onClick(View v) {
+                likedSongs.add(songNames.get(songListNumbers.get(songListNumbers.size()-1)));
                 nextSong();
             }
-        });*/
+        });
+
+        likeT.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                ArrayList<String> songCombo = new ArrayList<String>();
+                songCombo.add(songNames.get(songListNumbers.get(songListNumbers.size()-2)));
+                songCombo.add(songNames.get(songListNumbers.get(songListNumbers.size()-1)));
+                likeTransitions.add(songCombo);
+            }
+        });
+
 
     }
 
@@ -202,6 +235,8 @@ public class MusicTester extends AppCompatActivity {
                     mFirebaseDatabaseReference.child("testing").setValue(true);
 
                     Intent intent = new Intent(MusicTester.this, MainMenu.class);
+                    initializeWeights();
+                    initializeTransitions();
                     startActivity(intent);
                     finish();
                 }
@@ -210,6 +245,10 @@ public class MusicTester extends AppCompatActivity {
 
         if (songsLoaded < size - (int) Math.ceil(0.1 * size)) {
             songsLoaded++;
+
+            if (songsLoaded > 1)
+                likeT.setEnabled(true);
+
             int n = (int) (Math.random() * (songList.size() - 1) + 0);
 
             if (songListNumbers.isEmpty())
@@ -259,6 +298,7 @@ public class MusicTester extends AppCompatActivity {
             mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
             mFirebaseDatabaseReference.child("testing").setValue(true);
             Intent intent = new Intent(MusicTester.this, MainMenu.class);
+            initializeWeights();
             startActivity(intent);
             finish();
             return false;
@@ -332,4 +372,202 @@ public class MusicTester extends AppCompatActivity {
             }.start();
         }
     }
+
+    //Initialize weights
+    public void initializeWeights() {
+        final DatabaseReference clusterReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/clusters");
+        final DatabaseReference bpmReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/bpms");
+        clusterReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                final int liked = likedSongs.size();
+                FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/likedSongs").setValue(liked);
+                int clusterBins = (int) dataSnapshot.getChildrenCount();
+                double initialWeight = 1.0 / ((double) (liked + clusterBins + 11));
+
+                for (int i = 0; i < clusterBins; i++)
+                    weightC.add(initialWeight);
+                for (int i = 0; i < 11; i++)
+                    weightB.add(initialWeight);
+
+                mFirebaseDatabaseReference.child("library").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        for (int i = 0; i < liked; i++) {
+                            int bpm = (int) (long) dataSnapshot.child(likedSongs.get(i)).child("bpm").getValue();
+                            if (bpm < 50)
+                                bpm = 0;
+                            else if (bpm < 55)
+                                bpm = 1;
+                            else if (bpm < 60)
+                                bpm = 2;
+                            else if (bpm < 70)
+                                bpm = 3;
+                            else if (bpm < 85)
+                                bpm = 4;
+                            else if (bpm < 100)
+                                bpm = 5;
+                            else if (bpm < 115)
+                                bpm = 6;
+                            else if (bpm < 140)
+                                bpm = 7;
+                            else if (bpm < 150)
+                                bpm = 8;
+                            else if (bpm < 170)
+                                bpm = 9;
+                            else
+                                bpm = 10;
+
+                            int cluster = (int) (long) dataSnapshot.child(likedSongs.get(i)).child("cluster").getValue();
+
+                            weightC.set(cluster, weightC.get(cluster) + 1.0 / ((double) (liked + 1)));
+                            weightB.set(bpm, weightB.get(bpm) + 1.0 / ((double) (liked + 1.0)));
+                        }
+
+                        for (int i = 0; i < weightC.size(); i++)
+                            clusterReference.child(Integer.toString(i)).child("weight").setValue(weightC.get(i));
+                        for (int i = 0; i < 11; i++)
+                            bpmReference.child(Integer.toString(i)).child("weight").setValue(weightB.get(i));
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+    }
+
+    //Initialize transition weights
+    public void initializeTransitions() {
+        final DatabaseReference clusterReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/clusters");
+        final DatabaseReference bpmReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/bpms");
+        final DatabaseReference transitionReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/transitions");
+
+        clusterReference.addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                int clusterSize = (int) (long) dataSnapshot.getChildrenCount();
+
+                Double initialWeight = 1.0 / ((double) (likeTransitions.size() + (clusterSize * clusterSize + 11 * 11)));
+
+                for (int i = 0; i < clusterSize; i++) {
+                    for (int j = 0; j < clusterSize; j++) {
+                        weightTC.put(i + "-" + j, initialWeight);
+                    }
+                }
+
+                for (int i = 0; i < 11; i++) {
+                    for (int j = 0; j < 11; j++) {
+                        weightTB.put(i + "-" + j, initialWeight);
+                    }
+                }
+
+                mFirebaseDatabaseReference.child("library").addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        Set wC = weightTC.entrySet();
+                        Set wB = weightTB.entrySet();
+                        Iterator C = wC.iterator();
+                        Iterator B = wB.iterator();
+
+                        for (int i = 0; i < likeTransitions.size(); i++) {
+                            int bpm1 = (int) (long) dataSnapshot.child(likeTransitions.get(i).get(0)).child("bpm").getValue();
+                            if (bpm1 < 50)
+                                bpm1 = 0;
+                            else if (bpm1 < 55)
+                                bpm1 = 1;
+                            else if (bpm1 < 60)
+                                bpm1 = 2;
+                            else if (bpm1 < 70)
+                                bpm1 = 3;
+                            else if (bpm1 < 85)
+                                bpm1 = 4;
+                            else if (bpm1 < 100)
+                                bpm1 = 5;
+                            else if (bpm1 < 115)
+                                bpm1 = 6;
+                            else if (bpm1 < 140)
+                                bpm1 = 7;
+                            else if (bpm1 < 150)
+                                bpm1 = 8;
+                            else if (bpm1 < 170)
+                                bpm1 = 9;
+                            else
+                                bpm1 = 10;
+                            int cluster1 = (int) (long) dataSnapshot.child(likeTransitions.get(i).get(0)).child("cluster").getValue();
+
+                            int bpm2 = (int) (long) dataSnapshot.child(likeTransitions.get(i).get(1)).child("bpm").getValue();
+                            if (bpm2 < 50)
+                                bpm2 = 0;
+                            else if (bpm2 < 55)
+                                bpm2 = 1;
+                            else if (bpm2 < 60)
+                                bpm2 = 2;
+                            else if (bpm2 < 70)
+                                bpm2 = 3;
+                            else if (bpm2 < 85)
+                                bpm2 = 4;
+                            else if (bpm2 < 100)
+                                bpm2 = 5;
+                            else if (bpm2 < 115)
+                                bpm2 = 6;
+                            else if (bpm2 < 140)
+                                bpm2 = 7;
+                            else if (bpm2 < 150)
+                                bpm2 = 8;
+                            else if (bpm2 < 170)
+                                bpm2 = 9;
+                            else
+                                bpm2 = 10;
+                            int cluster2 = (int) (long) dataSnapshot.child(likeTransitions.get(i).get(1)).child("cluster").getValue();
+
+                            Double weightC = (Double) weightTC.get(cluster1 + "-" + cluster2);
+                            Log.d("weight1",""+weightC);
+                            Double weightB = (Double) weightTB.get(bpm1 + "-" + bpm2);
+
+                            weightC = weightC + 1.0 / ((double) (likeTransitions.size() + 1));
+                            Log.d("weight2",""+weightC);
+                            weightB = weightB + 1.0 / ((double) (likeTransitions.size() + 1));
+
+                            weightTC.put(cluster1 + "-" + cluster2, weightC);
+                            weightTB.put(bpm1 + "-" + bpm2, weightB);
+                        }
+
+                        while (C.hasNext()) {
+                            Map.Entry me = (Map.Entry) C.next();
+                            transitionReference.child("clusters").child(me.getKey().toString()).setValue(me.getValue());
+                        }
+
+                        while (B.hasNext()) {
+                            Map.Entry me = (Map.Entry) B.next();
+                            transitionReference.child("bpms").child(me.getKey().toString()).setValue(me.getValue());
+                        }
+
+                        mFirebaseDatabaseReference.child("likedTransitions").setValue(likeTransitions.size());
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+    }
+
+
 }

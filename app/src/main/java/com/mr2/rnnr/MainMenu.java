@@ -38,6 +38,7 @@ public class MainMenu extends AppCompatActivity {
     private ViewPager viewPager;
     LocalBroadcastManager bManager;
     TextView speed;
+    TextView title;
     ProgressBar progressBar;
     RelativeLayout workoutBar;
 
@@ -53,7 +54,9 @@ public class MainMenu extends AppCompatActivity {
 
         //Hide workout bar
         workoutBar = (RelativeLayout) findViewById(R.id.activity_workout);
-        workoutBar.setVisibility(View.INVISIBLE);
+        //workoutBar.setVisibility(View.INVISIBLE);
+
+        title = (TextView) findViewById(R.id.title);
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -79,6 +82,7 @@ public class MainMenu extends AppCompatActivity {
         IntentFilter intentFilter = new IntentFilter();
         intentFilter.addAction(RECEIVE_DATA);
         intentFilter.addAction(RECEIVE_PROGRESS);
+        intentFilter.addAction(RECEIVE_SONG);
         bManager.registerReceiver(bReceiver, intentFilter);
 
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -111,6 +115,7 @@ public class MainMenu extends AppCompatActivity {
     //Your activity will respond to this action String
     public static final String RECEIVE_DATA = "Data received.";
     public static final String RECEIVE_PROGRESS = "Progress received.";
+    public static final String RECEIVE_SONG = "Song received";
 
     private BroadcastReceiver bReceiver = new BroadcastReceiver() {
         @Override
@@ -123,6 +128,11 @@ public class MainMenu extends AppCompatActivity {
             else if (intent.getAction().equals(RECEIVE_PROGRESS)){
                 int Progress = intent.getIntExtra("progress",0);
                 progressBar.setProgress(Progress);
+            }
+
+            else if(intent.getAction().equals(RECEIVE_SONG)){
+                String songTitle = intent.getStringExtra("songTitle");
+                title.setText(songTitle);
             }
         }
     };

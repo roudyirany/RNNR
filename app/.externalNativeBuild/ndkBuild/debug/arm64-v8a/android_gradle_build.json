@@ -3,31 +3,9 @@
     "/Users/roudyirany/Documents/RNNR/app/Android.mk",
     "/Users/roudyirany/Documents/RNNR/app/Application.mk"
   ],
-  "cleanCommands": [
-    "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003darm64-v8a NDK_ALL_ABIS\u003darm64-v8a NDEBUG\u003d1 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/debug/lib clean"
-  ],
-  "libraries": {
-    "rnnrsim-debug-arm64-v8a": {
-      "buildCommand": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/ndk-build NDK_PROJECT_PATH\u003dnull APP_BUILD_SCRIPT\u003d/Users/roudyirany/Documents/RNNR/app/Android.mk NDK_APPLICATION_MK\u003d/Users/roudyirany/Documents/RNNR/app/Application.mk APP_ABI\u003darm64-v8a NDK_ALL_ABIS\u003darm64-v8a NDEBUG\u003d1 APP_PLATFORM\u003dandroid-21 NDK_OUT\u003d/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj NDK_LIBS_OUT\u003d/Users/roudyirany/Documents/RNNR/app/build/intermediates/ndkBuild/debug/lib /Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj/local/arm64-v8a/librnnrsim.so",
-      "toolchain": "toolchain-arm64-v8a",
-      "abi": "arm64-v8a",
-      "artifactName": "rnnrsim",
-      "files": [
-        {
-          "src": "/Users/roudyirany/Documents/RNNR/app/src/main/jni/rnnrsim.cpp",
-          "flags": "\"-fpic\" \"-ffunction-sections\" \"-funwind-tables\" \"-fstack-protector-strong\" \"-no-canonical-prefixes\" \"-g\" \"-fno-exceptions\" \"-fno-rtti\" \"-O2\" \"-DNDEBUG\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/libs/arm64-v8a/include\" \"-I/Users/roudyirany/Library/Android/sdk/ndk-bundle/sources/cxx-stl/gnu-libstdc++/4.9/include/backward\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app/src/main/cpp/FFmpeg/include\" \"-I/Users/roudyirany/Documents/RNNR/app\" \"-DANDROID\" \"-Wa,--noexecstack\" \"-Wformat\" \"-Werror\u003dformat-security\" \"-std\u003dc++0x\" \"-isystem\" \"/Users/roudyirany/Library/Android/sdk/ndk-bundle/platforms/android-21/arch-arm64/usr/include\""
-        }
-      ],
-      "output": "/Users/roudyirany/Documents/RNNR/app/.externalNativeBuild/ndkBuild/debug/obj/local/arm64-v8a/librnnrsim.so"
-    }
-  },
-  "toolchains": {
-    "toolchain-arm64-v8a": {
-      "cppCompilerExecutable": "/Users/roudyirany/Library/Android/sdk/ndk-bundle/toolchains/aarch64-linux-android-4.9/prebuilt/darwin-x86_64/bin/aarch64-linux-android-g++"
-    }
-  },
+  "cleanCommands": [],
+  "libraries": {},
+  "toolchains": {},
   "cFileExtensions": [],
-  "cppFileExtensions": [
-    "cpp"
-  ]
+  "cppFileExtensions": []
 }
