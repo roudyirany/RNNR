@@ -30,6 +30,7 @@ import android.database.Cursor;
 import android.widget.Toast;
 
 
+import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -89,7 +90,7 @@ public class Initialization extends AppCompatActivity {
             return;
         }
 
-        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
         mFirebaseDatabaseReference.keepSynced(true);
 

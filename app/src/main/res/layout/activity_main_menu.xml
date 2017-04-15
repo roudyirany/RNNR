@@ -118,7 +118,7 @@
                     android:layout_width="54dp"
                     android:layout_height="54dp"
                     app:srcCompat="@drawable/cast_album_art_placeholder"
-                    android:id="@+id/imageView"
+                    android:id="@+id/artwork"
                     android:layout_gravity="center"/>
 
                 <LinearLayout

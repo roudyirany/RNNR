@@ -4,23 +4,29 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.os.CountDownTimer;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.support.v7.widget.Toolbar;
 import android.view.View;
+import android.view.Window;
+import android.view.WindowManager;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TabHost;
 import android.widget.TextView;
 
+import com.google.android.gms.ads.formats.NativeAd;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DataSnapshot;
@@ -28,6 +34,8 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
+
+import org.w3c.dom.Text;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -38,7 +46,9 @@ public class MainMenu extends AppCompatActivity {
     private ViewPager viewPager;
     LocalBroadcastManager bManager;
     TextView speed;
-    TextView title;
+    TextView titleT;
+    TextView artistT;
+    ImageView artwork;
     ProgressBar progressBar;
     RelativeLayout workoutBar;
 
@@ -56,7 +66,9 @@ public class MainMenu extends AppCompatActivity {
         workoutBar = (RelativeLayout) findViewById(R.id.activity_workout);
         //workoutBar.setVisibility(View.INVISIBLE);
 
-        title = (TextView) findViewById(R.id.title);
+        titleT = (TextView) findViewById(R.id.title);
+        artistT = (TextView) findViewById(R.id.artist);
+        artwork = (ImageView) findViewById(R.id.artwork);
 
         // Initialize Firebase Auth
         mFirebaseAuth = FirebaseAuth.getInstance();
@@ -67,7 +79,7 @@ public class MainMenu extends AppCompatActivity {
         mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
-                targetSpeed.setText(dataSnapshot.getValue().toString()+" Km/h");
+                targetSpeed.setText(dataSnapshot.getValue().toString() + " Km/h");
             }
 
             @Override
@@ -99,7 +111,7 @@ public class MainMenu extends AppCompatActivity {
     }
 
     @Override
-    public void onDestroy(){
+    public void onDestroy() {
         super.onDestroy();
         bManager.unregisterReceiver(bReceiver);
     }
@@ -120,19 +132,37 @@ public class MainMenu extends AppCompatActivity {
     private BroadcastReceiver bReceiver = new BroadcastReceiver() {
         @Override
         public void onReceive(Context context, Intent intent) {
-            if(intent.getAction().equals(RECEIVE_DATA)) {
+            if (intent.getAction().equals(RECEIVE_DATA)) {
                 String serviceDataString = intent.getStringExtra("data");
                 speed.setText(serviceDataString);
-            }
-
-            else if (intent.getAction().equals(RECEIVE_PROGRESS)){
-                int Progress = intent.getIntExtra("progress",0);
+            } else if (intent.getAction().equals(RECEIVE_PROGRESS)) {
+                int Progress = intent.getIntExtra("progress", 0);
                 progressBar.setProgress(Progress);
-            }
+            } else if (intent.getAction().equals(RECEIVE_SONG)) {
+                byte[] art = intent.getByteArrayExtra("art");
+                String artist = intent.getStringExtra("artist");
+                String title = intent.getStringExtra("title");
 
-            else if(intent.getAction().equals(RECEIVE_SONG)){
-                String songTitle = intent.getStringExtra("songTitle");
-                title.setText(songTitle);
+                if (art != null) {
+                    artwork.setImageBitmap(BitmapFactory.decodeByteArray(art, 0, art.length));
+                } else {
+                    artwork.setImageResource(R.drawable.unknown_track);
+                }
+
+                if (artist == null)
+                    artist = "Unknown Artist";
+                if (title == null)
+                    title = "Unknown Track";
+
+                if (artist.length() <= 20)
+                    artistT.setText(artist);
+                else
+                    artistT.setText(artist.substring(0, 20) + "...");
+
+                if (title.length() <= 20)
+                    titleT.setText(title);
+                else
+                    titleT.setText(title.substring(0, 20) + "...");
             }
         }
     };

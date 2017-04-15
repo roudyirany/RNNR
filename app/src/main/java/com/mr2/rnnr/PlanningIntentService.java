@@ -4,7 +4,6 @@ import android.app.IntentService;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.content.LocalBroadcastManager;
-import android.util.Log;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -24,12 +23,6 @@ import java.util.Random;
 
 
 public class PlanningIntentService extends IntentService {
-    /**
-     * Creates an IntentService.  Invoked by your subclass's constructor.
-     *
-     * @param name Used to name the worker thread, important only for debugging.
-     */
-
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
@@ -90,7 +83,7 @@ public class PlanningIntentService extends IntentService {
                     ArrayList<Integer> Trajectory = new ArrayList<Integer>();
                     ArrayList<Integer> BPMs = new ArrayList<Integer>();
                     double expectedPayoff = 0.0;
-                    for (int j = 0; j < 3; j++) {
+                    for (int j = 0; j < 5; j++) {
 
                         Random rand = new Random();
                         int n = rand.nextInt(upperMedianClusters.size() - 1);
@@ -162,9 +155,8 @@ public class PlanningIntentService extends IntentService {
 
     //Select random 3 songs
     public void randomSong(int cluster){
-        Query query = mFirebaseDatabaseReference.child("library").orderByChild("cluster").equalTo(cluster);
-        query.addListenerForSingleValueEvent(new ValueEventListener() {
-            String nextSong;
+        mFirebaseDatabaseReference.child("library").orderByChild("cluster").equalTo(cluster).addListenerForSingleValueEvent(new ValueEventListener() {
+            String nextPath;
 
             @Override
             public void onDataChange(DataSnapshot dataSnapshot) {
@@ -180,12 +172,12 @@ public class PlanningIntentService extends IntentService {
                 int i=0;
                 for(DataSnapshot postSnapshot: dataSnapshot.getChildren()){
                     if(i == n)
-                        nextSong = postSnapshot.getKey().toString();
+                        nextPath = postSnapshot.child("path").getValue().toString();
                     else i++;
                 }
 
-                Intent RTReturn = new Intent(MainMenu.RECEIVE_SONG);
-                RTReturn.putExtra("songTitle", nextSong);
+                Intent RTReturn = new Intent(MusicService.RECEIVE_PATH);
+                RTReturn.putExtra("path", nextPath);
                 LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
             }
 

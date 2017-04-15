@@ -12,6 +12,9 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.media.MediaMetadataRetriever;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -54,19 +57,21 @@ public class MusicService extends Service implements SensorEventListener, Google
     private Sensor StepCounter;
     private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
     private double stepCounter = 0;
+
     PowerManager powerManager;
     PowerManager.WakeLock wakelock;
     String activityString = "Walking";
     boolean activityStarted = false;
+
     ArrayList<Integer> BestTrajectory;
-    String nextSong;
     Context context;
 
-    // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
-    private DatabaseReference mFirebaseDatabaseReference;
+    LocalBroadcastManager bManager;
+    public static final String RECEIVE_PATH = "Path received.";
 
+    MediaPlayer mediaPlayer;
+    NotificationCompat.Builder builder;
+    NotificationManager nManager;
 
     @Nullable
     @Override
@@ -76,11 +81,6 @@ public class MusicService extends Service implements SensorEventListener, Google
 
     @Override
     public void onCreate() {
-        // Initialize Firebase Auth
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseUser = mFirebaseAuth.getCurrentUser();
-
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
         BestTrajectory = new ArrayList<Integer>();
 
         mApiClient = new GoogleApiClient.Builder(this)
@@ -99,18 +99,17 @@ public class MusicService extends Service implements SensorEventListener, Google
         wakelock = powerManager.newWakeLock(PowerManager.FULL_WAKE_LOCK, "wake lock");
         wakelock.acquire();
 
-        // Initialize Firebase Auth
-        mFirebaseAuth = FirebaseAuth.getInstance();
-        mFirebaseUser = mFirebaseAuth.getCurrentUser();
-        mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
-
-
         senSensorManager = (SensorManager) getSystemService(Context.SENSOR_SERVICE);
         StepCounter = senSensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
         senSensorManager.registerListener(this, StepCounter, SensorManager.SENSOR_DELAY_FASTEST);
 
+        bManager = LocalBroadcastManager.getInstance(this);
+        IntentFilter intentFilter = new IntentFilter();
+        intentFilter.addAction(RECEIVE_PATH);
+        bManager.registerReceiver(bReceiver, intentFilter);
+
         //Notification
-        NotificationCompat.Builder builder =
+        builder =
                 new NotificationCompat.Builder(this)
                         .setSmallIcon(R.mipmap.ic_launcher)
                         .setContentTitle("RNNR")
@@ -121,7 +120,7 @@ public class MusicService extends Service implements SensorEventListener, Google
         Intent targetIntent = new Intent(this, MainMenu.class);
         PendingIntent contentIntent = PendingIntent.getActivity(this, 0, targetIntent, PendingIntent.FLAG_UPDATE_CURRENT);
         builder.setContentIntent(contentIntent);
-        NotificationManager nManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+        nManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         nManager.notify(NOTIFICATION_ID, builder.build());
 
 
@@ -159,7 +158,7 @@ public class MusicService extends Service implements SensorEventListener, Google
             }
         }.start();
 
-        startService(new Intent(context, PlanningIntentService.class));
+        startService(new Intent(this, PlanningIntentService.class));
 
         return START_STICKY;
     }
@@ -168,6 +167,7 @@ public class MusicService extends Service implements SensorEventListener, Google
     public void onTaskRemoved(Intent rootIntent) {
         NotificationManager mNotificationManager = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
         mNotificationManager.cancel(12345);
+        bManager.unregisterReceiver(bReceiver);
         stopSelf();
     }
 
@@ -257,5 +257,34 @@ public class MusicService extends Service implements SensorEventListener, Google
             Log.e("status: ", "Error: " + status.getStatusMessage());
         }
     }
+
+    //Receive current song path
+    private BroadcastReceiver bReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(Context context, Intent intent) {
+            if(intent.getAction().equals(RECEIVE_PATH)) {
+                String path = intent.getStringExtra("path");
+
+                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                retriever.setDataSource(path);
+
+                byte[] art = retriever.getEmbeddedPicture();
+                String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+
+                Intent RTReturn = new Intent(MainMenu.RECEIVE_SONG);
+                RTReturn.putExtra("art", art);
+                RTReturn.putExtra("artist",artist);
+                RTReturn.putExtra("title", title);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+
+                builder.setContentText(title+" - "+artist);
+                nManager.notify(12345,builder.build());
+
+                mediaPlayer = MediaPlayer.create(MusicService.this, Uri.parse(path));
+                mediaPlayer.start();
+            }
+        }
+    };
 
 }
