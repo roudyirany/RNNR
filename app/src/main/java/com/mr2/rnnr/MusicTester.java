@@ -211,6 +211,7 @@ public class MusicTester extends AppCompatActivity {
                 songCombo.add(songNames.get(songListNumbers.get(songListNumbers.size()-2)));
                 songCombo.add(songNames.get(songListNumbers.get(songListNumbers.size()-1)));
                 likeTransitions.add(songCombo);
+                likeT.setEnabled(false);
             }
         });
 

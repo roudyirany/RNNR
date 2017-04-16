@@ -6,6 +6,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.graphics.BitmapFactory;
 import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.LightingColorFilter;
+import android.graphics.PorterDuff;
 import android.os.CountDownTimer;
 import android.support.design.widget.TabLayout;
 import android.support.v4.app.Fragment;
@@ -49,8 +52,19 @@ public class MainMenu extends AppCompatActivity {
     TextView titleT;
     TextView artistT;
     ImageView artwork;
+    ImageView like;
+    ImageView playpause;
     ProgressBar progressBar;
+    ProgressBar trackProgressBar;
     RelativeLayout workoutBar;
+    Context context;
+
+    public static final String RECEIVE_DATA = "Data received.";
+    public static final String RECEIVE_PROGRESS = "Progress received.";
+    public static final String RECEIVE_TRACK_PROGRESS = "Track progress received.";
+    public static final String RECEIVE_SONG = "Song received. ";
+    public static final String FORCED_PAUSE = "Audiofocus loss.";
+    public static final String TARGET_SPEED = "Target speed. ";
 
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
@@ -61,6 +75,8 @@ public class MainMenu extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_menu);
+
+        context = this;
 
         //Hide workout bar
         workoutBar = (RelativeLayout) findViewById(R.id.activity_workout);
@@ -75,19 +91,6 @@ public class MainMenu extends AppCompatActivity {
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid() + "/targetSpeed");
 
-        final TextView targetSpeed = (TextView) findViewById(R.id.textView7);
-        mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-            @Override
-            public void onDataChange(DataSnapshot dataSnapshot) {
-                targetSpeed.setText(dataSnapshot.getValue().toString() + " Km/h");
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-
-            }
-        });
-
         speed = (TextView) findViewById(R.id.textView9);
 
         bManager = LocalBroadcastManager.getInstance(this);
@@ -95,6 +98,9 @@ public class MainMenu extends AppCompatActivity {
         intentFilter.addAction(RECEIVE_DATA);
         intentFilter.addAction(RECEIVE_PROGRESS);
         intentFilter.addAction(RECEIVE_SONG);
+        intentFilter.addAction(RECEIVE_TRACK_PROGRESS);
+        intentFilter.addAction(FORCED_PAUSE);
+        intentFilter.addAction(TARGET_SPEED);
         bManager.registerReceiver(bReceiver, intentFilter);
 
         viewPager = (ViewPager) findViewById(R.id.viewpager);
@@ -108,6 +114,45 @@ public class MainMenu extends AppCompatActivity {
         progressBar = (ProgressBar) findViewById(R.id.workoutProgress);
         progressBar.setMax(100);
         progressBar.setProgress(0);
+
+        trackProgressBar = (ProgressBar) findViewById(R.id.songProgress);
+        trackProgressBar.setMax(100);
+        trackProgressBar.setProgress(0);
+
+        //If song is playing, pause button should be displayed and vice versa.
+        playpause = (ImageView) findViewById(R.id.playpause);
+        playpause.setOnClickListener(new View.OnClickListener() {
+            public void onClick(View v) {
+                if (String.valueOf(playpause.getTag()).equals("play")) {
+                    Intent RTReturn = new Intent(MusicService.PLAY_SONG);
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+
+                    playpause.setImageResource(android.R.drawable.ic_media_pause);
+                    playpause.setTag("pause");
+
+                } else {
+                    Intent RTReturn = new Intent(MusicService.PAUSE_SONG);
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+
+                    playpause.setImageResource(android.R.drawable.ic_media_play);
+                    playpause.setTag("play");
+                }
+            }
+        });
+
+        like = (ImageView) findViewById(R.id.likeMain);
+        like.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if (String.valueOf(like.getTag()).equals("like")) {
+                    like.setColorFilter(Color.rgb(251, 152, 0), PorterDuff.Mode.SRC_IN);
+                    like.setTag("unlike");
+                } else {
+                    like.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
+                    like.setTag("like");
+                }
+            }
+        });
     }
 
     @Override
@@ -123,11 +168,6 @@ public class MainMenu extends AppCompatActivity {
         adapter.addFragment(new settings(), "SETTINGS");
         viewPager.setAdapter(adapter);
     }
-
-    //Your activity will respond to this action String
-    public static final String RECEIVE_DATA = "Data received.";
-    public static final String RECEIVE_PROGRESS = "Progress received.";
-    public static final String RECEIVE_SONG = "Song received";
 
     private BroadcastReceiver bReceiver = new BroadcastReceiver() {
         @Override
@@ -154,15 +194,32 @@ public class MainMenu extends AppCompatActivity {
                 if (title == null)
                     title = "Unknown Track";
 
-                if (artist.length() <= 20)
+                if (artist.length() <= 30)
                     artistT.setText(artist);
                 else
-                    artistT.setText(artist.substring(0, 20) + "...");
+                    artistT.setText(artist.substring(0, 30) + "...");
 
-                if (title.length() <= 20)
+                if (title.length() <= 30)
                     titleT.setText(title);
                 else
-                    titleT.setText(title.substring(0, 20) + "...");
+                    titleT.setText(title.substring(0, 30) + "...");
+            } else if (intent.getAction().equals(RECEIVE_TRACK_PROGRESS)) {
+                int progress = intent.getIntExtra("progress", 0);
+                trackProgressBar.setProgress(progress);
+
+                if (progress == 100) {
+                    Intent RTReturn = new Intent(MusicService.UPDATE_MODEL);
+                    RTReturn.putExtra("likeStatus", String.valueOf(like.getTag()));
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+                }
+            } else if (intent.getAction().equals(FORCED_PAUSE)) {
+                playpause.setImageResource(android.R.drawable.ic_media_pause);
+                playpause.setTag("pause");
+            }
+            else if(intent.getAction().equals(TARGET_SPEED)){
+                TextView targetSpeed = (TextView) findViewById(R.id.textView7);
+                Double target = intent.getDoubleExtra("targetSpeed",0.0);
+                targetSpeed.setText(target +" Km/h");
             }
         }
     };

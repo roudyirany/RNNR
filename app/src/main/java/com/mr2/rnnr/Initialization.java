@@ -175,7 +175,8 @@ public class Initialization extends AppCompatActivity {
                                                     //Update weights
                                                     updateWeightsSubtract();
 
-                                                    mFirebaseDatabaseReference.child("clusters/" + cluster).setValue(null);
+                                                    mFirebaseDatabaseReference.child("clusters/").child(Integer.toString(cluster)).child("parent").setValue(null);
+                                                    mFirebaseDatabaseReference.child("clusters/").child(Integer.toString(cluster)).child("weight").setValue(null);
 
                                                     mFirebaseDatabaseReference.child("clusters").addListenerForSingleValueEvent(new ValueEventListener() {
                                                         @Override
@@ -326,7 +327,7 @@ public class Initialization extends AppCompatActivity {
                     y = -0.0681 * x + 11.14;
 
                 DecimalFormat df = new DecimalFormat("####0.0");
-                mFirebaseDatabaseReference.child("targetSpeed").setValue(df.format(y));
+                mFirebaseDatabaseReference.child("targetSpeed").setValue(Double.parseDouble(df.format(y)));
                 popup.dismiss();
                 wind.getForeground().setAlpha(0);
 

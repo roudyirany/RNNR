@@ -19,7 +19,7 @@ import java.util.List;
 
 public class ActivityRecognizedService extends IntentService {
 
-    DetectedActivity previousActivity = new DetectedActivity(DetectedActivity.STILL, 100);
+    DetectedActivity previousActivity = new DetectedActivity(DetectedActivity.WALKING, 100);
 
     public ActivityRecognizedService() {
         super("ActivityRecognizedService");

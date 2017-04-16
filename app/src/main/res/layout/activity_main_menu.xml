@@ -173,22 +173,23 @@
                 android:layout_width="wrap_content"
                 android:layout_height="35dp"
                 app:srcCompat="@android:drawable/btn_star"
-                android:id="@+id/like"
+                android:id="@+id/likeMain"
                 android:gravity="center"
                 android:tint="@android:color/black"
-                android:layout_weight="0.06" />
+                android:layout_weight="0.06"
+                android:tag="like"/>
 
             <ImageView
                 android:layout_width="55dp"
                 android:layout_height="55dp"
-                app:srcCompat="@android:drawable/ic_media_play"
+                app:srcCompat="@android:drawable/ic_media_pause"
                 android:id="@+id/playpause"
                 android:gravity="center"
                 android:layout_weight="0.04"
                 android:layout_marginLeft="6dp"
                 android:tint="@android:color/black"
                 android:clickable="true"
-                android:tag="play"/>
+                android:tag="pause"/>
 
             <ImageView
                 android:layout_width="wrap_content"
