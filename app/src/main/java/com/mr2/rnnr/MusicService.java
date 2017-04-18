@@ -177,7 +177,6 @@ public class MusicService extends Service implements SensorEventListener, Google
 
                 if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED || audioFocus) {
                     audioFocus = true;
-                    Log.d("audiofocus", "true");
                     mediaPlayer.start();
                     final Context context1 = context;
                     mediaCountDown = new CountDownTimer(500, 500) {
@@ -245,7 +244,7 @@ public class MusicService extends Service implements SensorEventListener, Google
                     reward = reward + 5;
 
                 if (skipped)
-                    reward = 5;
+                    reward = 10;
 
                 rewards.add(reward);
 
@@ -307,14 +306,28 @@ public class MusicService extends Service implements SensorEventListener, Google
                         if (!skipped)
                             songsPlayed++;
 
-                        Intent RTReturn = new Intent(MusicService.RECEIVE_PATH);
-                        RTReturn.putExtra("path", nextPath);
-                        LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
-
                         if (cooldown) {
-                            RTReturn = new Intent(MusicService.PAUSE_SONG);
+                            Intent RTReturn = new Intent(MusicService.PAUSE_SONG);
                             LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+                            audioFocus = false;
+                            previousCluster = null;
+                            currentCluster = null;
+                            tempC = null;
+                            tempB = null;
+                            previousBPM = null;
+                            currentBPM = null;
+                            speeds = new ArrayList<Double>();
+                            rewards = new ArrayList<Integer>();
                             songsPlayed = 0;
+                            songsLoaded = 0;
+                            cooldown = false;
+                            new planAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR);
+                        }
+
+                        else{
+                            Intent RTReturn = new Intent(MusicService.RECEIVE_PATH);
+                            RTReturn.putExtra("path", nextPath);
+                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
                         }
                     }
 
@@ -419,7 +432,8 @@ public class MusicService extends Service implements SensorEventListener, Google
                 DecimalFormat df = new DecimalFormat("####0.0");
                 speed = Double.valueOf(df.format(speed));
 
-                speeds.add(speed);
+                if(audioFocus)
+                    speeds.add(speed);
                 String dataString = Double.toString(speed) + " Km/h";
                 Intent RTReturn = new Intent(MainMenu.RECEIVE_DATA);
                 RTReturn.putExtra("data", dataString);
@@ -620,15 +634,15 @@ public class MusicService extends Service implements SensorEventListener, Google
                             BPMs.add(quantizeBPM(bpm));
                         }
 
-                        for (int k = 0; k < 3; k++) {
+                        for (int k = 0; k < 5; k++) {
                             expectedPayoff = expectedPayoff + RsValues.get(upperMedianClusters.indexOf(Trajectory.get(k)));
                         }
 
                         double RtC, RtB;
                         if (previousCluster != null) {
                             Log.d("previous2", "" + previousCluster);
-                            RtC = ((double) dataSnapshot.child("transitions").child("clusters").child(previousCluster + "-" + Trajectory.get(0)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(0) + "-" + Trajectory.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(1) + "-" + Trajectory.get(2)).getValue());
-                            RtB = ((double) dataSnapshot.child("transitions").child("bpms").child(previousBPM + "-" + BPMs.get(0)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(0) + "-" + BPMs.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(1) + "-" + BPMs.get(2)).getValue());
+                            RtC = ((double) dataSnapshot.child("transitions").child("clusters").child(previousCluster + "-" + Trajectory.get(0)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(0) + "-" + Trajectory.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(1) + "-" + Trajectory.get(2)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(2) + "-" + Trajectory.get(3)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(3) + "-" + Trajectory.get(4)).getValue());
+                            RtB = ((double) dataSnapshot.child("transitions").child("bpms").child(previousBPM + "-" + BPMs.get(0)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(0) + "-" + BPMs.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(1) + "-" + BPMs.get(2)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(2) + "-" + BPMs.get(3)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(3) + "-" + BPMs.get(4)).getValue());
                         } else {
                             RtC = ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(0) + "-" + Trajectory.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(1) + "-" + Trajectory.get(2)).getValue());
                             RtB = ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(0) + "-" + BPMs.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(1) + "-" + BPMs.get(2)).getValue());
@@ -674,7 +688,7 @@ public class MusicService extends Service implements SensorEventListener, Google
                                 } else i++;
                             }
 
-                            if (songsLoaded < 2) {
+                            if (songsLoaded == 1) {
                                 currentCluster = tempC;
                                 currentBPM = tempB;
 

@@ -57,7 +57,6 @@ public class MainMenu extends AppCompatActivity {
     ProgressBar trackProgressBar;
     RelativeLayout workoutBar;
     Context context;
-    boolean stopped = false;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private BroadcastReceiver bReceiver = new BroadcastReceiver() {
@@ -104,7 +103,11 @@ public class MainMenu extends AppCompatActivity {
                     LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
                     like.setColorFilter(Color.BLACK, PorterDuff.Mode.SRC_IN);
                     like.setTag("like");
-                    startWorkout.setEnabled(true);
+
+                    if(startWorkout.getText().toString().equals("Cooling down...")) {
+                        startWorkout.setEnabled(true);
+                        startWorkout.setText("Start Workout");
+                    }
                 }
             } else if (intent.getAction().equals(FORCED_PAUSE)) {
                 playpause.setImageResource(android.R.drawable.ic_media_play);
@@ -223,10 +226,6 @@ public class MainMenu extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (String.valueOf(startWorkout.getTag()).equals("start")) {
-                    if (stopped)
-                        startService(new Intent(context, MusicService.class));
-
-                    stopped = false;
 
                     Intent RTReturn = new Intent(MusicService.PLAY_SONG);
                     LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
@@ -241,7 +240,6 @@ public class MainMenu extends AppCompatActivity {
                     like.setClickable(true);
                     playpause.setClickable(true);
                 } else {
-                    stopped = true;
                     Intent RTReturn = new Intent(MusicService.COOLDOWN);
                     LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
 
@@ -249,7 +247,7 @@ public class MainMenu extends AppCompatActivity {
                     playpause.setTag("play");
 
                     startWorkout.setTag("start");
-                    startWorkout.setText("Start Workout");
+                    startWorkout.setText("Cooling down...");
 
                     startWorkout.setEnabled(false);
                     skip.setClickable(false);
