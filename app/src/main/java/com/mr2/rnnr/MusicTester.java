@@ -283,15 +283,15 @@ public class MusicTester extends AppCompatActivity {
             if (title == null)
                 title = "Unknown Track";
 
-            if (artist.length() <= 20)
+            if (artist.length() <= 30)
                 Artist.setText(artist);
             else
-                Artist.setText(artist.substring(0, 20) + "...");
+                Artist.setText(artist.substring(0, 30) + "...");
 
-            if (title.length() <= 20)
+            if (title.length() <= 30)
                 Title.setText(title);
             else
-                Title.setText(title.substring(0, 20) + "...");
+                Title.setText(title.substring(0, 30) + "...");
 
             mediaPlayer = MediaPlayer.create(MusicTester.this, Uri.parse(songList.get(n)));
             return true;

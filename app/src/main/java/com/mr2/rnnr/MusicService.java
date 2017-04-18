@@ -1,6 +1,5 @@
 package com.mr2.rnnr;
 
-import android.app.IntentService;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -41,15 +40,12 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
-import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 
 import java.text.DecimalFormat;
 import java.util.ArrayList;
 import java.util.Random;
 
-import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT;
-import static android.media.AudioManager.AUDIOFOCUS_LOSS_TRANSIENT_CAN_DUCK;
 import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
 
 /**
@@ -57,51 +53,285 @@ import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
  */
 
 public class MusicService extends Service implements SensorEventListener, GoogleApiClient.ConnectionCallbacks, GoogleApiClient.OnConnectionFailedListener, ResultCallback<Status> {
+    public static final String RECEIVE_PATH = "Path received.";
+    public static final String PLAY_SONG = "Play song.";
+    public static final String PAUSE_SONG = "Pause song.";
+    public static final String UPDATE_MODEL = "Update model.";
+    public static final String COOLDOWN = "Cooldown.";
     public GoogleApiClient mApiClient;
-    private SensorManager senSensorManager;
-    private Sensor StepCounter;
-    private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
-    private double stepCounter = 0;
-
     PowerManager powerManager;
     PowerManager.WakeLock wakelock;
     String activityString = "Walking";
     boolean activityStarted = false;
 
     ArrayList<Integer> BestTrajectory;
-    Context context;
+    Context context1;
 
     LocalBroadcastManager bManager;
-    public static final String RECEIVE_PATH = "Path received.";
-    public static final String PLAY_SONG = "Play song.";
-    public static final String PAUSE_SONG = "Pause song.";
-    public static final String UPDATE_MODEL = "Update model";
-
     MediaPlayer mediaPlayer;
     CountDownTimer mediaCountDown;
     NotificationCompat.Builder builder;
     NotificationManager nManager;
     AudioManager am;
     AudioManager.OnAudioFocusChangeListener afChangeListener;
-
-    // Firebase instance variables
-    private FirebaseAuth mFirebaseAuth;
-    private FirebaseUser mFirebaseUser;
-    private DatabaseReference mFirebaseDatabaseReference;
-
+    boolean audioFocus = false;
     Integer previousCluster = null;
     Integer currentCluster;
     Integer tempC;
     Integer tempB;
     Integer previousBPM = null;
     Integer currentBPM;
-
     ArrayList<Double> speeds;
     ArrayList<Integer> rewards;
     double targetSpeed;
     int songsPlayed = 0;
     int songsLoaded = 0;
     String nextPath;
+    String nextSong;
+    String currentSong;
+    boolean cooldown = false;
+    private SensorManager senSensorManager;
+    private Sensor StepCounter;
+    private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
+    private double stepCounter = 0;
+    // Firebase instance variables
+    private FirebaseAuth mFirebaseAuth;
+    private FirebaseUser mFirebaseUser;
+    private DatabaseReference mFirebaseDatabaseReference;
+    //Receive current song path
+    private BroadcastReceiver bReceiver = new BroadcastReceiver() {
+        @Override
+        public void onReceive(final Context context, Intent intent) {
+            if (intent.getAction().equals(RECEIVE_PATH)) {
+                String path = intent.getStringExtra("path");
+                currentSong = nextSong;
+
+                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
+                retriever.setDataSource(path);
+
+                byte[] art = retriever.getEmbeddedPicture();
+                String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
+                String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
+
+                Intent RTReturn = new Intent(MainMenu.RECEIVE_SONG);
+                RTReturn.putExtra("art", art);
+                RTReturn.putExtra("artist", artist);
+                RTReturn.putExtra("title", title);
+                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+
+                builder.setContentText(artist).setContentTitle(title);
+                nManager.notify(12345, builder.build());
+
+                if (mediaPlayer != null && mediaPlayer.isPlaying())
+                    mediaPlayer.stop();
+
+                mediaPlayer = MediaPlayer.create(MusicService.this, Uri.parse(path));
+
+                if (songsLoaded > 1) {
+                    RTReturn = new Intent(MusicService.PLAY_SONG);
+                    LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+                }
+                new planAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR);
+            } else if (intent.getAction().equals(PLAY_SONG)) {
+                //Check if song is liked
+                String key = nextSong;
+                mFirebaseDatabaseReference.child("library").child(key).addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        if (dataSnapshot.child("liked").getValue() != null && (boolean) dataSnapshot.child("liked").getValue()) {
+                            Intent RTReturn = new Intent(MainMenu.SET_LIKE);
+                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+
+                //Request audiofocus and handle audiofocus
+                int result = 0;
+                if (!audioFocus) {
+                    am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
+                    afChangeListener = new AudioManager.OnAudioFocusChangeListener() {
+                        public void onAudioFocusChange(int focusChange) {
+                            if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
+                                // Permanent loss of audio focus
+                                // Pause playback immediately
+                                mediaPlayer.pause();
+                                am.abandonAudioFocus(afChangeListener);
+                                audioFocus = false;
+                                Intent RTReturn = new Intent(MainMenu.FORCED_PAUSE);
+                                LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+                            }
+                        }
+                    };
+
+                    result = am.requestAudioFocus(afChangeListener,
+                            // Use the music stream.
+                            AudioManager.STREAM_MUSIC,
+                            // Request permanent focus.
+                            AudioManager.AUDIOFOCUS_GAIN);
+                }
+
+                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED || audioFocus) {
+                    audioFocus = true;
+                    Log.d("audiofocus", "true");
+                    mediaPlayer.start();
+                    final Context context1 = context;
+                    mediaCountDown = new CountDownTimer(500, 500) {
+                        @Override
+                        public void onTick(long millisUntilFinished) {
+
+                        }
+
+                        @Override
+                        public void onFinish() {
+                            int position = mediaPlayer.getCurrentPosition();
+                            int duration = mediaPlayer.getDuration();
+                            int progress = ((100 * position) / duration + 1);
+
+                            Intent RTReturn = new Intent(MainMenu.RECEIVE_TRACK_PROGRESS);
+                            RTReturn.putExtra("progress", progress);
+                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+
+                            mediaCountDown.start();
+                        }
+                    };
+
+                    mediaCountDown.start();
+                }
+            } else if (intent.getAction().equals(PAUSE_SONG)) {
+                if (audioFocus) {
+                    mediaPlayer.pause();
+                    am.abandonAudioFocus(afChangeListener);
+                    audioFocus = false;
+                    mediaCountDown.cancel();
+                }
+            }
+            //Update model
+            else if (intent.getAction().equals(UPDATE_MODEL)) {
+
+                String likeStatus = intent.getStringExtra("likeStatus");
+                final boolean skipped = intent.getBooleanExtra("skipped", false);
+
+                int reward;
+
+                if (likeStatus.equals("unlike")) {
+                    reward = 15;
+                    mFirebaseDatabaseReference.child("library").child(currentSong).child("liked").setValue(true);
+                } else {
+                    reward = 10;
+                    mFirebaseDatabaseReference.child("library").child(currentSong).child("liked").setValue(false);
+                }
+
+                double averageSpeed = 0;
+                for (int i = 0; i < speeds.size(); i++) {
+                    averageSpeed = averageSpeed + speeds.get(i);
+                }
+                averageSpeed = averageSpeed / ((double) speeds.size());
+                speeds = new ArrayList<Double>();
+
+                double currentTarget;
+                if (songsPlayed < 4)
+                    currentTarget = (targetSpeed / (double) 4) * (double) (songsPlayed + 1);
+                else if (cooldown)
+                    currentTarget = (targetSpeed / (double) 4);
+                else
+                    currentTarget = targetSpeed;
+
+                if (averageSpeed >= currentTarget)
+                    reward = reward + 5;
+
+                if (skipped)
+                    reward = 5;
+
+                rewards.add(reward);
+
+                double rewardAverage = 0;
+                for (int i = 0; i < rewards.size(); i++) {
+                    rewardAverage = rewardAverage + rewards.get(i);
+                }
+                rewardAverage = rewardAverage / ((double) rewards.size());
+                final double rewardIncr = Math.log((double) reward / rewardAverage);
+
+                mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
+                    @Override
+                    public void onDataChange(DataSnapshot dataSnapshot) {
+                        double WsC, WsB, WtC, WtB;
+                        double RsC, RsB, RtC, RtB, weightTC, weightTB;
+
+                        RsC = (double) dataSnapshot.child("clusters").child(Integer.toString(currentCluster)).child("weight").getValue();
+                        RsB = (double) dataSnapshot.child("bpms").child(Integer.toString(currentBPM)).child("weight").getValue();
+
+
+                        if (previousCluster == null) {
+                            WsC = WsB = 1;
+                            WtC = WtB = 0;
+                        } else {
+                            Log.d("previous", "" + previousCluster);
+                            Log.d("current", "" + currentCluster);
+                            RtC = (double) dataSnapshot.child("transitions").child("clusters").child(previousCluster + "-" + currentCluster).getValue();
+                            RtB = (double) dataSnapshot.child("transitions").child("bpms").child(previousBPM + "-" + currentBPM).getValue();
+                            WsC = RsC / (RsC + RtC);
+                            WsB = RsB / (RsB + RtB);
+                            WtC = RsC / (RsC + RtC);
+                            WtB = RtB / (RsB + RtB);
+                            weightTC = ((double) (songsPlayed / (songsPlayed + 1)) * RtC + ((double) (1 / (songsPlayed + 1)) * WtC * rewardIncr));
+                            weightTB = ((double) (songsPlayed / (songsPlayed + 1)) * RtB + ((double) (1 / (songsPlayed + 1)) * WtB * rewardIncr));
+                            if (Double.isInfinite(weightTC) || weightTC == 0.0)
+                                weightTC = 0.00001;
+                            if (Double.isInfinite(weightTB) || weightTB == 0.0)
+                                weightTB = 0.00001;
+                            mFirebaseDatabaseReference.child("transitions").child("clusters").child(previousCluster + "-" + currentCluster).setValue(weightTC);
+                            mFirebaseDatabaseReference.child("transitions").child("bpms").child(previousBPM + "-" + currentBPM).setValue(weightTB);
+                        }
+
+                        double weightC = (((double) songsPlayed + 1.0) / ((double) songsPlayed + 2.0)) * RsC + ((1.0 / ((double) songsPlayed + 2.0)) * WsC * rewardIncr);
+                        double weightB = (((double) songsPlayed + 1.0) / ((double) songsPlayed + 2.0)) * RsB + ((1.0 / ((double) songsPlayed + 2.0)) * WsB * rewardIncr);
+
+                        if (Double.isInfinite(weightC) || weightC == 0.0)
+                            weightC = 0.00001;
+                        if (Double.isInfinite(weightB) || weightB == 0.0)
+                            weightB = 0.00001;
+
+                        mFirebaseDatabaseReference.child("clusters").child(Integer.toString(currentCluster)).child("weight").setValue(weightC);
+                        mFirebaseDatabaseReference.child("bpms").child(Integer.toString(currentBPM)).child("weight").setValue(weightB);
+
+                        previousCluster = currentCluster;
+                        previousBPM = currentBPM;
+                        currentCluster = tempC;
+                        currentBPM = tempB;
+
+                        if (!skipped)
+                            songsPlayed++;
+
+                        Intent RTReturn = new Intent(MusicService.RECEIVE_PATH);
+                        RTReturn.putExtra("path", nextPath);
+                        LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+
+                        if (cooldown) {
+                            RTReturn = new Intent(MusicService.PAUSE_SONG);
+                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+                            songsPlayed = 0;
+                        }
+                    }
+
+                    @Override
+                    public void onCancelled(DatabaseError databaseError) {
+
+                    }
+                });
+            } else if (intent.getAction().equals(COOLDOWN)) {
+                cooldown = true;
+                double currentTarget = targetSpeed / 4.0;
+                Intent RTReturn = new Intent(MainMenu.TARGET_SPEED);
+                RTReturn.putExtra("targetSpeed", currentTarget);
+                LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+            }
+        }
+    };
 
     @Nullable
     @Override
@@ -147,6 +377,7 @@ public class MusicService extends Service implements SensorEventListener, Google
         intentFilter.addAction(PLAY_SONG);
         intentFilter.addAction(PAUSE_SONG);
         intentFilter.addAction(UPDATE_MODEL);
+        intentFilter.addAction(COOLDOWN);
         bManager.registerReceiver(bReceiver, intentFilter);
 
         //Notification
@@ -167,10 +398,9 @@ public class MusicService extends Service implements SensorEventListener, Google
 
     }
 
-
     @Override
     public int onStartCommand(Intent intent, int flags, int startid) {
-        context = this;
+        context1 = this;
 
         //Activity detection
         new CountDownTimer(30000, 1000) {
@@ -193,7 +423,7 @@ public class MusicService extends Service implements SensorEventListener, Google
                 String dataString = Double.toString(speed) + " Km/h";
                 Intent RTReturn = new Intent(MainMenu.RECEIVE_DATA);
                 RTReturn.putExtra("data", dataString);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+                LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
 
                 stepCounter = 0;
                 this.start();
@@ -222,7 +452,7 @@ public class MusicService extends Service implements SensorEventListener, Google
             if (activityString.equals("Walking"))
                 stepCounter = stepCounter + 0.726;
             else if (activityString.equals("Running"))
-                stepCounter = stepCounter + 0.826;
+                stepCounter = stepCounter + 0.750;
         }
 
     }
@@ -272,15 +502,6 @@ public class MusicService extends Service implements SensorEventListener, Google
         }
     }
 
-    public class ActivityDetectionBroadcastReceiver extends BroadcastReceiver {
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            DetectedActivity detectedActivity = intent.getParcelableExtra(Constants.STRING_EXTRA);
-            activityString = getDetectedActivity(detectedActivity.getType());
-        }
-    }
-
     public void requestActivityUpdates() {
         ActivityRecognition.ActivityRecognitionApi.requestActivityUpdates(mApiClient, 0, getActivityDetectionPendingIntent()).setResultCallback(this);
     }
@@ -300,177 +521,14 @@ public class MusicService extends Service implements SensorEventListener, Google
         }
     }
 
-    //Receive current song path
-    private BroadcastReceiver bReceiver = new BroadcastReceiver() {
+    public class ActivityDetectionBroadcastReceiver extends BroadcastReceiver {
+
         @Override
-        public void onReceive(final Context context, Intent intent) {
-            if (intent.getAction().equals(RECEIVE_PATH)) {
-                String path = intent.getStringExtra("path");
-
-                MediaMetadataRetriever retriever = new MediaMetadataRetriever();
-                retriever.setDataSource(path);
-
-                byte[] art = retriever.getEmbeddedPicture();
-                String artist = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_ARTIST);
-                String title = retriever.extractMetadata(MediaMetadataRetriever.METADATA_KEY_TITLE);
-
-                Intent RTReturn = new Intent(MainMenu.RECEIVE_SONG);
-                RTReturn.putExtra("art", art);
-                RTReturn.putExtra("artist", artist);
-                RTReturn.putExtra("title", title);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
-
-                builder.setContentText(artist).setContentTitle(title);
-                nManager.notify(12345, builder.build());
-
-                if(mediaPlayer != null && mediaPlayer.isPlaying())
-                    mediaPlayer.stop();
-
-                am.abandonAudioFocus(afChangeListener);
-                mediaPlayer = MediaPlayer.create(MusicService.this, Uri.parse(path));
-                RTReturn = new Intent(MusicService.PLAY_SONG);
-                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
-
-                new planAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR);
-            } else if (intent.getAction().equals(PLAY_SONG)) {
-                am = (AudioManager) context.getSystemService(Context.AUDIO_SERVICE);
-                afChangeListener =  new AudioManager.OnAudioFocusChangeListener() {
-                    public void onAudioFocusChange(int focusChange) {
-                        if (focusChange == AudioManager.AUDIOFOCUS_LOSS) {
-                            // Permanent loss of audio focus
-                            // Pause playback immediately
-                            mediaPlayer.pause();
-                            Intent RTReturn = new Intent(MainMenu.FORCED_PAUSE);
-                            LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
-
-                        }
-                    }
-                };;
-
-                int result = am.requestAudioFocus(afChangeListener,
-                        // Use the music stream.
-                        AudioManager.STREAM_MUSIC,
-                        // Request permanent focus.
-                        AudioManager.AUDIOFOCUS_GAIN);
-
-                if (result == AudioManager.AUDIOFOCUS_REQUEST_GRANTED) {
-                    mediaPlayer.start();
-                    final Context context1 = context;
-                    mediaCountDown = new CountDownTimer(500, 500) {
-                        @Override
-                        public void onTick(long millisUntilFinished) {
-
-                        }
-
-                        @Override
-                        public void onFinish() {
-                            int position = mediaPlayer.getCurrentPosition();
-                            int duration = mediaPlayer.getDuration();
-                            int progress = ((100 * position) / duration+1);
-
-                            Intent RTReturn = new Intent(MainMenu.RECEIVE_TRACK_PROGRESS);
-                            RTReturn.putExtra("progress", progress);
-                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
-
-                            mediaCountDown.start();
-                        }
-                    };
-
-                    mediaCountDown.start();
-                }
-            } else if (intent.getAction().equals(PAUSE_SONG)) {
-                mediaPlayer.pause();
-                am.abandonAudioFocus(afChangeListener);
-                mediaCountDown.cancel();
-            }
-            //Update model
-            else if(intent.getAction().equals(UPDATE_MODEL)){
-
-                String likeStatus = intent.getStringExtra("likeStatus");
-                int reward;
-
-                if(likeStatus.equals("unlike"))
-                    reward = 10;
-                else
-                    reward = 0;
-
-                double averageSpeed = 0;
-                for(int i=0; i<speeds.size();i++){
-                    averageSpeed = averageSpeed + speeds.get(i);
-                }
-                averageSpeed = averageSpeed / ((double)speeds.size());
-                speeds = new ArrayList<Double>();
-
-                double currentTarget;
-                if(songsPlayed < 4)
-                    currentTarget = (targetSpeed/(double)4)*(double)(songsPlayed+1);
-                else
-                    currentTarget = targetSpeed;
-
-                reward = reward + ((int)(averageSpeed - currentTarget));
-                rewards.add(reward);
-
-                double rewardAverage = 0;
-                for(int i=0; i<rewards.size();i++){
-                    rewardAverage = rewardAverage + rewards.get(i);
-                }
-                rewardAverage = rewardAverage / ((double)rewards.size());
-                final double rewardIncr = Math.log((double)reward/rewardAverage);
-
-                mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
-                    @Override
-                    public void onDataChange(DataSnapshot dataSnapshot) {
-                        double WsC,WsB,WtC, WtB;
-                        double RsC,RsB, RtC, RtB, weightTC, weightTB;
-
-                        RsC = (double) dataSnapshot.child("clusters").child(Integer.toString(currentCluster)).child("weight").getValue();
-                        RsB = (double) dataSnapshot.child("bpms").child(Integer.toString(currentBPM)).child("weight").getValue();
-
-
-                        if(previousCluster == null){
-                            WsC = WsB = 1;
-                            WtC = WtB = 0;
-                        }
-
-                        else{
-                            RtC = (double) dataSnapshot.child("transitions").child("clusters").child(previousCluster+"-"+currentCluster).child("weight").getValue();
-                            RtB = (double) dataSnapshot.child("transitions").child("bpms").child(previousBPM+"-"+currentBPM).child("weight").getValue();
-                            WsC = RsC/(RsC + RtC);
-                            WsB = RsB/(RsB + RtB);
-                            WtC = RsC/(RsC + RtC);
-                            WtB = RtB/(RsB + RtB);
-                            weightTC = ((double)(songsPlayed/(songsPlayed+1))*RtC + ((double)(1/(songsPlayed+1))*WtC*rewardIncr));
-                            weightTB = ((double)(songsPlayed/(songsPlayed+1))*RtB + ((double)(1/(songsPlayed+1))*WtB*rewardIncr));
-                            mFirebaseDatabaseReference.child("transitions").child("clusters").child(previousCluster+"-"+currentCluster).child("weight").setValue(weightTC);
-                            mFirebaseDatabaseReference.child("transitions").child("bpms").child(previousBPM+"-"+currentBPM).child("weight").setValue(weightTB);
-                        }
-
-                        double weightC = (((double)songsPlayed+1.0)/((double)songsPlayed+2.0))*RsC + ((1.0/((double)songsPlayed+2.0))*WsC*rewardIncr);
-                        double weightB = (((double)songsPlayed+1.0)/((double)songsPlayed+2.0))*RsB + ((1.0/((double)songsPlayed+2.0))*WsB*rewardIncr);
-                        Log.d("new","weightC: "+weightC);
-
-                        mFirebaseDatabaseReference.child("clusters").child(Integer.toString(currentCluster)).child("weight").setValue(weightC);
-                        mFirebaseDatabaseReference.child("bpms").child(Integer.toString(currentBPM)).child("weight").setValue(weightB);
-
-                        previousCluster = currentCluster;
-                        previousBPM = currentBPM;
-                        currentCluster = tempC;
-                        currentBPM = tempB;
-
-                        songsPlayed++;
-                        Intent RTReturn = new Intent(MusicService.RECEIVE_PATH);
-                        RTReturn.putExtra("path", nextPath);
-                        LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
-                    }
-
-                    @Override
-                    public void onCancelled(DatabaseError databaseError) {
-
-                    }
-                });
-            }
+        public void onReceive(Context context, Intent intent) {
+            DetectedActivity detectedActivity = intent.getParcelableExtra(Constants.STRING_EXTRA);
+            activityString = getDetectedActivity(detectedActivity.getType());
         }
-    };
+    }
 
     //Playlist planning in the background
     class planAsyncTask extends AsyncTask<Void, Void, Void> {
@@ -480,20 +538,26 @@ public class MusicService extends Service implements SensorEventListener, Google
             Process.setThreadPriority(Process.THREAD_PRIORITY_BACKGROUND);
             songsLoaded++;
 
+            Intent RTReturn = new Intent(MainMenu.DISABLE_SKIP);
+            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+
             mFirebaseDatabaseReference.child("targetSpeed").addListenerForSingleValueEvent(new ValueEventListener() {
                 @Override
                 public void onDataChange(DataSnapshot dataSnapshot) {
                     targetSpeed = (double) dataSnapshot.getValue();
 
                     double currentTarget;
-                    if(songsPlayed < 4)
-                        currentTarget = (targetSpeed/(double)4)*(double)(songsPlayed+1);
+                    if (songsPlayed < 4)
+                        currentTarget = (targetSpeed / (double) 4) * (double) (songsPlayed + 1);
                     else
                         currentTarget = targetSpeed;
 
+                    DecimalFormat df = new DecimalFormat("####0.0");
+                    currentTarget = Double.parseDouble(df.format(currentTarget));
+
                     Intent RTReturn = new Intent(MainMenu.TARGET_SPEED);
-                    RTReturn.putExtra("targetSpeed",currentTarget);
-                    LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+                    RTReturn.putExtra("targetSpeed", currentTarget);
+                    LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
                 }
 
                 @Override
@@ -562,6 +626,7 @@ public class MusicService extends Service implements SensorEventListener, Google
 
                         double RtC, RtB;
                         if (previousCluster != null) {
+                            Log.d("previous2", "" + previousCluster);
                             RtC = ((double) dataSnapshot.child("transitions").child("clusters").child(previousCluster + "-" + Trajectory.get(0)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(0) + "-" + Trajectory.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("clusters").child(Trajectory.get(1) + "-" + Trajectory.get(2)).getValue());
                             RtB = ((double) dataSnapshot.child("transitions").child("bpms").child(previousBPM + "-" + BPMs.get(0)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(0) + "-" + BPMs.get(1)).getValue()) + ((double) dataSnapshot.child("transitions").child("bpms").child(BPMs.get(1) + "-" + BPMs.get(2)).getValue());
                         } else {
@@ -590,7 +655,6 @@ public class MusicService extends Service implements SensorEventListener, Google
                 //Select random 3 songs
                 public void randomSong(final int cluster) {
                     mFirebaseDatabaseReference.child("library").orderByChild("cluster").equalTo(cluster).addListenerForSingleValueEvent(new ValueEventListener() {
-
                         @Override
                         public void onDataChange(DataSnapshot dataSnapshot) {
                             int count = (int) (long) dataSnapshot.getChildrenCount();
@@ -606,17 +670,21 @@ public class MusicService extends Service implements SensorEventListener, Google
                                     tempC = cluster;
                                     tempB = quantizeBPM((int) (long) postSnapshot.child("bpm").getValue());
                                     nextPath = postSnapshot.child("path").getValue().toString();
+                                    nextSong = postSnapshot.getKey().toString();
                                 } else i++;
                             }
 
-                            if(songsLoaded<2){
+                            if (songsLoaded < 2) {
                                 currentCluster = tempC;
                                 currentBPM = tempB;
 
                                 Intent RTReturn = new Intent(MusicService.RECEIVE_PATH);
                                 RTReturn.putExtra("path", nextPath);
-                                LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+                                LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
                             }
+
+                            Intent RTReturn = new Intent(MainMenu.ENABLE_SKIP);
+                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
                         }
 
                         @Override

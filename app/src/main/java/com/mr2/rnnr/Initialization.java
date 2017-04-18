@@ -172,11 +172,11 @@ public class Initialization extends AppCompatActivity {
                                                 //If no other tracks from the cluster exist delete that cluster since it is non existent
                                                 if (dataSnapshot.getValue() == null) {
 
-                                                    //Update weights
-                                                    updateWeightsSubtract();
-
                                                     mFirebaseDatabaseReference.child("clusters/").child(Integer.toString(cluster)).child("parent").setValue(null);
                                                     mFirebaseDatabaseReference.child("clusters/").child(Integer.toString(cluster)).child("weight").setValue(null);
+
+                                                    //Update weights
+                                                    updateWeightsSubtract();
 
                                                     mFirebaseDatabaseReference.child("clusters").addListenerForSingleValueEvent(new ValueEventListener() {
                                                         @Override
@@ -473,10 +473,10 @@ public class Initialization extends AppCompatActivity {
                                             }
 
                                             if (max == 1) {
-                                                updateWeightsAdd();
                                                 mFirebaseDatabaseReference.child("clusters/" + cluster + "/parent").setValue(addedSongs.get(i));
                                                 mFirebaseDatabaseReference.child("clusters/" + cluster + "/weight").setValue(weightT);
                                                 mFirebaseDatabaseReference.child("library/" + addedSongs.get(i) + "/cluster").setValue(cluster);
+                                                updateWeightsAdd();
                                                 parents.add(addedSongs.get(i));
                                                 parentsIndex.add(i);
                                                 clusterIndex.add(cluster);

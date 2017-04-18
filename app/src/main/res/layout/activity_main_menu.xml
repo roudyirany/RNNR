@@ -83,7 +83,9 @@
             android:textColor="@android:color/black"
             android:layout_marginTop="142dp"
             android:layout_alignParentTop="true"
-            android:layout_centerHorizontal="true" />
+            android:layout_centerHorizontal="true"
+            android:id="@+id/startWorkout"
+            android:tag="start"/>
 
         <ProgressBar
             android:id="@+id/workoutProgress"
@@ -182,14 +184,14 @@
             <ImageView
                 android:layout_width="55dp"
                 android:layout_height="55dp"
-                app:srcCompat="@android:drawable/ic_media_pause"
+                app:srcCompat="@android:drawable/ic_media_play"
                 android:id="@+id/playpause"
                 android:gravity="center"
                 android:layout_weight="0.04"
                 android:layout_marginLeft="6dp"
                 android:tint="@android:color/black"
                 android:clickable="true"
-                android:tag="pause"/>
+                android:tag="play"/>
 
             <ImageView
                 android:layout_width="wrap_content"
