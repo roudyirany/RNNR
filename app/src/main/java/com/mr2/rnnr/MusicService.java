@@ -229,7 +229,7 @@ public class MusicService extends Service implements SensorEventListener, Google
                 for (int i = 0; i < speeds.size(); i++) {
                     averageSpeed = averageSpeed + speeds.get(i);
                 }
-                averageSpeed = averageSpeed / ((double) speeds.size());
+                averageSpeed = (averageSpeed / ((double) speeds.size()));
                 speeds = new ArrayList<Double>();
 
                 double currentTarget;
@@ -255,6 +255,9 @@ public class MusicService extends Service implements SensorEventListener, Google
                 rewardAverage = rewardAverage / ((double) rewards.size());
                 final double rewardIncr = Math.log((double) reward / rewardAverage);
 
+                final double R1 = (double)reward;
+                final double R2 = rewardAverage;
+
                 mFirebaseDatabaseReference.addListenerForSingleValueEvent(new ValueEventListener() {
                     @Override
                     public void onDataChange(DataSnapshot dataSnapshot) {
@@ -277,8 +280,17 @@ public class MusicService extends Service implements SensorEventListener, Google
                             WsB = RsB / (RsB + RtB);
                             WtC = RsC / (RsC + RtC);
                             WtB = RtB / (RsB + RtB);
-                            weightTC = ((double) (songsPlayed / (songsPlayed + 1)) * RtC + ((double) (1 / (songsPlayed + 1)) * WtC * rewardIncr));
-                            weightTB = ((double) (songsPlayed / (songsPlayed + 1)) * RtB + ((double) (1 / (songsPlayed + 1)) * WtB * rewardIncr));
+
+                            if(R1 != R2) {
+                                weightTC = ((double) (songsPlayed / (songsPlayed + 1)) * RtC + ((double) (1 / (songsPlayed + 1)) * WtC * rewardIncr));
+                                weightTB = ((double) (songsPlayed / (songsPlayed + 1)) * RtB + ((double) (1 / (songsPlayed + 1)) * WtB * rewardIncr));
+                            }
+
+                            else{
+                                weightTC = RtC;
+                                weightTB = RtB;
+                            }
+
                             if (Double.isInfinite(weightTC) || weightTC == 0.0)
                                 weightTC = 0.00001;
                             if (Double.isInfinite(weightTB) || weightTB == 0.0)
@@ -289,6 +301,11 @@ public class MusicService extends Service implements SensorEventListener, Google
 
                         double weightC = (((double) songsPlayed + 1.0) / ((double) songsPlayed + 2.0)) * RsC + ((1.0 / ((double) songsPlayed + 2.0)) * WsC * rewardIncr);
                         double weightB = (((double) songsPlayed + 1.0) / ((double) songsPlayed + 2.0)) * RsB + ((1.0 / ((double) songsPlayed + 2.0)) * WsB * rewardIncr);
+
+                        if(R1 == R2){
+                            weightC = RsC;
+                            weightB = RsB;
+                        }
 
                         if (Double.isInfinite(weightC) || weightC == 0.0)
                             weightC = 0.00001;
