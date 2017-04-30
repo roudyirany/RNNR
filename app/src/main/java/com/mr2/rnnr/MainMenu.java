@@ -1,5 +1,6 @@
 package com.mr2.rnnr;
 
+import android.app.ActivityManager;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
@@ -43,6 +44,7 @@ public class MainMenu extends AppCompatActivity {
     public static final String FORCED_PAUSE = "Audiofocus loss.";
     public static final String TARGET_SPEED = "Target speed. ";
     public static final String DISABLE_SKIP = "Disable skip. ";
+    public static final String RESTART = "Disable";
     public static final String ENABLE_SKIP = "Enable skip. ";
     public static final String SET_LIKE = "Set like. ";
     private LocalBroadcastManager bManager;
@@ -124,6 +126,11 @@ public class MainMenu extends AppCompatActivity {
             } else if (intent.getAction().equals(SET_LIKE)) {
                 like.setColorFilter(Color.parseColor("#ffff8800"), PorterDuff.Mode.SRC_IN);
                 like.setTag("unlike");
+            }
+            else if(intent.getAction().equals(RESTART)){
+                Intent intent1 = new Intent(MainMenu.this,MainMenu.class);
+                startActivity(intent1);
+                finish();
             }
         }
     };
@@ -228,6 +235,27 @@ public class MainMenu extends AppCompatActivity {
             public void onClick(View v) {
                 if (String.valueOf(startWorkout.getTag()).equals("start")) {
 
+                    if(!isMyServiceRunning(MusicService.class)){
+                        startService(new Intent(context,MusicService.class));
+                        Toast.makeText(context, "Please wait while RNNR initializes.",
+                                Toast.LENGTH_LONG).show();
+
+                        while(!isMyServiceRunning(MusicService.class)){}
+
+                        Intent RTReturn = new Intent(MusicService.PLAY_SONG);
+                        LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
+
+                        playpause.setImageResource(android.R.drawable.ic_media_pause);
+                        playpause.setTag("pause");
+
+                        startWorkout.setTag("stop");
+                        startWorkout.setText("Cooldown & Stop Workout");
+
+                        skip.setClickable(true);
+                        like.setClickable(true);
+                        playpause.setClickable(true);
+                    }
+
                     Intent RTReturn = new Intent(MusicService.PLAY_SONG);
                     LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
 
@@ -306,6 +334,16 @@ public class MainMenu extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
             return mFragmentTitleList.get(position);
         }
+    }
+
+    private boolean isMyServiceRunning(Class<?> serviceClass) {
+        ActivityManager manager = (ActivityManager) getSystemService(Context.ACTIVITY_SERVICE);
+        for (ActivityManager.RunningServiceInfo service : manager.getRunningServices(Integer.MAX_VALUE)) {
+            if (serviceClass.getName().equals(service.service.getClassName())) {
+                return true;
+            }
+        }
+        return false;
     }
 }
 

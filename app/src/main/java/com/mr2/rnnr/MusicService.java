@@ -47,6 +47,8 @@ import java.text.DecimalFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Random;
 
 import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
@@ -98,7 +100,7 @@ public class MusicService extends Service implements SensorEventListener, Google
     private SensorManager senSensorManager;
     private Sensor StepCounter;
     private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
-    private double stepCounter = 0;
+    private double stepCounter = 0.0;
     private double totalDistance = 0.0;
     private int totalTime = 0;
     // Firebase instance variables
@@ -322,7 +324,9 @@ public class MusicService extends Service implements SensorEventListener, Google
                             Intent RTReturn = new Intent(MusicService.PAUSE_SONG);
                             LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
 
-                            double time = totalTime/3600;
+                            DecimalFormat df = new DecimalFormat("####0.0");
+
+                            double time = (double)totalTime/3600.0;
                             double distance = totalDistance/1000.0;
                             int ipart = (int) time;
                             double fpart = time - (double) ipart;
@@ -333,25 +337,21 @@ public class MusicService extends Service implements SensorEventListener, Google
                             DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
                             Date date = new Date();
 
-                            String key = mFirebaseDatabaseReference.child("history").push().getKey();
-                            mFirebaseDatabaseReference.child("history").child(key).child("distance").setValue(distance);
-                            mFirebaseDatabaseReference.child("history").child(key).child("time").setValue(ipart+":"+Math.round(fpart*60));
-                            mFirebaseDatabaseReference.child("history").child(key).child("speed").setValue(averageSpeed);
-                            mFirebaseDatabaseReference.child("history").child(key).child("date").setValue(dateFormat.format(date));
+                            Map<String,String> summary = new HashMap<String, String>();
+                            summary.put("date",dateFormat.format(date));
+                            if(fpart*60.0 <10)
+                                summary.put("time",ipart+":"+"0"+Math.round(fpart*60.0));
+                            else
+                                summary.put("time",ipart+":"+Math.round(fpart*60.0));
+                            summary.put("distance",df.format(distance));
+                            summary.put("speed",df.format(averageSpeed));
 
-                            audioFocus = false;
-                            previousCluster = null;
-                            currentCluster = null;
-                            tempC = null;
-                            tempB = null;
-                            previousBPM = null;
-                            currentBPM = null;
-                            speeds = new ArrayList<Double>();
-                            rewards = new ArrayList<Integer>();
-                            songsPlayed = 0;
-                            songsLoaded = 0;
-                            cooldown = false;
-                            new planAsyncTask().executeOnExecutor(THREAD_POOL_EXECUTOR);
+                            String key = mFirebaseDatabaseReference.child("history").push().getKey();
+                            mFirebaseDatabaseReference.child("history").child(key).setValue(summary);
+
+                            RTReturn = new Intent(MainMenu.RESTART);
+                            LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+                            stopSelf();
                         }
 
                         else{
@@ -476,6 +476,7 @@ public class MusicService extends Service implements SensorEventListener, Google
         //Activity detection
         new CountDownTimer(30000, 1000) {
             public void onTick(long millisUntilFinished) {
+                if(audioFocus)
                     totalTime++;
             }
 
@@ -485,14 +486,16 @@ public class MusicService extends Service implements SensorEventListener, Google
                     activityStarted = true;
                 }
 
-                totalDistance = totalDistance + stepCounter;
                 double distance = stepCounter;
                 double speed = (distance / 1000.0) / (30.0 / 3600.0);
                 DecimalFormat df = new DecimalFormat("####0.0");
                 speed = Double.valueOf(df.format(speed));
 
-                if(audioFocus)
+                if(audioFocus) {
+                    totalDistance = totalDistance + stepCounter;
                     speeds.add(speed);
+                }
+
                 String dataString = Double.toString(speed) + " Km/h";
                 Intent RTReturn = new Intent(MainMenu.RECEIVE_DATA);
                 RTReturn.putExtra("data", dataString);

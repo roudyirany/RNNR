@@ -74,7 +74,7 @@ public class history extends Fragment{
                         String time = postSnapshot.child("time").getValue().toString();
                         String speed = postSnapshot.child("speed").getValue().toString();
 
-                        summary.setText("Distance: " + distance + " km\nTime: " + time + "\nSpeed: " + speed + " km/h");
+                        summary.setText("Distance: " + distance + " km\nTime: " + time + " hours\nSpeed: " + speed + " km/h");
 
                         if (Build.VERSION.SDK_INT < 23)
                             summary.setTextAppearance(getContext(), R.style.divStyle);
