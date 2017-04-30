@@ -2,6 +2,7 @@ package com.mr2.rnnr;
 
 import android.content.Intent;
 import android.graphics.BitmapFactory;
+import android.graphics.Color;
 import android.media.AudioManager;
 import android.media.Image;
 import android.media.MediaMetadataRetriever;
@@ -207,6 +208,7 @@ public class MusicTester extends AppCompatActivity {
         likeT.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                likeT.setTextColor(Color.parseColor("#ffff8800"));
                 ArrayList<String> songCombo = new ArrayList<String>();
                 songCombo.add(songNames.get(songListNumbers.get(songListNumbers.size()-2)));
                 songCombo.add(songNames.get(songListNumbers.get(songListNumbers.size()-1)));
@@ -245,6 +247,8 @@ public class MusicTester extends AppCompatActivity {
         }
 
         if (songsLoaded < size - (int) Math.ceil(0.1 * size)) {
+            likeT.setTextColor(Color.WHITE);
+
             songsLoaded++;
 
             if (songsLoaded > 1)

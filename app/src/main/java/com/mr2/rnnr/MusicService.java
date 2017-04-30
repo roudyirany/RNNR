@@ -42,8 +42,11 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.ValueEventListener;
 
+import java.text.DateFormat;
 import java.text.DecimalFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.Random;
 
 import static android.os.AsyncTask.THREAD_POOL_EXECUTOR;
@@ -84,6 +87,8 @@ public class MusicService extends Service implements SensorEventListener, Google
     ArrayList<Double> speeds;
     ArrayList<Integer> rewards;
     double targetSpeed;
+    double walking = 0.726;
+    double running = 0.750;
     int songsPlayed = 0;
     int songsLoaded = 0;
     String nextPath;
@@ -94,6 +99,8 @@ public class MusicService extends Service implements SensorEventListener, Google
     private Sensor StepCounter;
     private ActivityDetectionBroadcastReceiver mBroadcastReceiver;
     private double stepCounter = 0;
+    private double totalDistance = 0.0;
+    private int totalTime = 0;
     // Firebase instance variables
     private FirebaseAuth mFirebaseAuth;
     private FirebaseUser mFirebaseUser;
@@ -281,15 +288,8 @@ public class MusicService extends Service implements SensorEventListener, Google
                             WtC = RsC / (RsC + RtC);
                             WtB = RtB / (RsB + RtB);
 
-                            if(R1 != R2) {
                                 weightTC = ((double) (songsPlayed / (songsPlayed + 1)) * RtC + ((double) (1 / (songsPlayed + 1)) * WtC * rewardIncr));
                                 weightTB = ((double) (songsPlayed / (songsPlayed + 1)) * RtB + ((double) (1 / (songsPlayed + 1)) * WtB * rewardIncr));
-                            }
-
-                            else{
-                                weightTC = RtC;
-                                weightTB = RtB;
-                            }
 
                             if (Double.isInfinite(weightTC) || weightTC == 0.0)
                                 weightTC = 0.00001;
@@ -301,11 +301,6 @@ public class MusicService extends Service implements SensorEventListener, Google
 
                         double weightC = (((double) songsPlayed + 1.0) / ((double) songsPlayed + 2.0)) * RsC + ((1.0 / ((double) songsPlayed + 2.0)) * WsC * rewardIncr);
                         double weightB = (((double) songsPlayed + 1.0) / ((double) songsPlayed + 2.0)) * RsB + ((1.0 / ((double) songsPlayed + 2.0)) * WsB * rewardIncr);
-
-                        if(R1 == R2){
-                            weightC = RsC;
-                            weightB = RsB;
-                        }
 
                         if (Double.isInfinite(weightC) || weightC == 0.0)
                             weightC = 0.00001;
@@ -326,6 +321,24 @@ public class MusicService extends Service implements SensorEventListener, Google
                         if (cooldown) {
                             Intent RTReturn = new Intent(MusicService.PAUSE_SONG);
                             LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+
+                            double time = totalTime/3600;
+                            double distance = totalDistance/1000.0;
+                            int ipart = (int) time;
+                            double fpart = time - (double) ipart;
+                            double averageSpeed = distance/time;
+                            totalTime = 0;
+                            totalDistance = 0.0;
+
+                            DateFormat dateFormat = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+                            Date date = new Date();
+
+                            String key = mFirebaseDatabaseReference.child("history").push().getKey();
+                            mFirebaseDatabaseReference.child("history").child(key).child("distance").setValue(distance);
+                            mFirebaseDatabaseReference.child("history").child(key).child("time").setValue(ipart+":"+Math.round(fpart*60));
+                            mFirebaseDatabaseReference.child("history").child(key).child("speed").setValue(averageSpeed);
+                            mFirebaseDatabaseReference.child("history").child(key).child("date").setValue(dateFormat.format(date));
+
                             audioFocus = false;
                             previousCluster = null;
                             currentCluster = null;
@@ -359,6 +372,12 @@ public class MusicService extends Service implements SensorEventListener, Google
                 Intent RTReturn = new Intent(MainMenu.TARGET_SPEED);
                 RTReturn.putExtra("targetSpeed", currentTarget);
                 LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+
+                if(!mediaPlayer.isPlaying()){
+                    RTReturn = new Intent(MusicService.PLAY_SONG);
+                    LocalBroadcastManager.getInstance(context1).sendBroadcast(RTReturn);
+                }
+
             }
         }
     };
@@ -378,6 +397,28 @@ public class MusicService extends Service implements SensorEventListener, Google
         mFirebaseAuth = FirebaseAuth.getInstance();
         mFirebaseUser = mFirebaseAuth.getCurrentUser();
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
+
+        mFirebaseDatabaseReference.child("walking").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                walking = (double) dataSnapshot.getValue();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
+
+        mFirebaseDatabaseReference.child("running").addListenerForSingleValueEvent(new ValueEventListener() {
+            @Override
+            public void onDataChange(DataSnapshot dataSnapshot) {
+                running = (double) dataSnapshot.getValue();
+            }
+            @Override
+            public void onCancelled(DatabaseError databaseError) {
+
+            }
+        });
 
         BestTrajectory = new ArrayList<Integer>();
 
@@ -435,7 +476,7 @@ public class MusicService extends Service implements SensorEventListener, Google
         //Activity detection
         new CountDownTimer(30000, 1000) {
             public void onTick(long millisUntilFinished) {
-
+                    totalTime++;
             }
 
             public void onFinish() {
@@ -444,6 +485,7 @@ public class MusicService extends Service implements SensorEventListener, Google
                     activityStarted = true;
                 }
 
+                totalDistance = totalDistance + stepCounter;
                 double distance = stepCounter;
                 double speed = (distance / 1000.0) / (30.0 / 3600.0);
                 DecimalFormat df = new DecimalFormat("####0.0");
@@ -481,9 +523,9 @@ public class MusicService extends Service implements SensorEventListener, Google
 
         if (mySensor.getType() == Sensor.TYPE_STEP_COUNTER) {
             if (activityString.equals("Walking"))
-                stepCounter = stepCounter + 0.726;
+                stepCounter = stepCounter + walking;
             else if (activityString.equals("Running"))
-                stepCounter = stepCounter + 0.750;
+                stepCounter = stepCounter + running;
         }
 
     }

@@ -116,6 +116,9 @@ public class Initialization extends AppCompatActivity {
             @Override
             public void onDataChange(final DataSnapshot snapshot) {
                 if (snapshot.getValue() == null) {
+                    mFirebaseDatabaseReference.child("walking").setValue(0.726);
+                    mFirebaseDatabaseReference.child("running").setValue(0.750);
+
                     size = songList.size();
                     if (size < 128) {
                         for (int i = 0; i < size; i++)
@@ -139,8 +142,12 @@ public class Initialization extends AppCompatActivity {
                     //intersection between cloud and local library
                     intersection.retainAll(localLibrary);
 
-                    if (intersection.isEmpty())
-                        mFirebaseDatabaseReference.child("clusters").setValue(null);
+                    if (intersection.isEmpty()) {
+                        mFirebaseDatabaseReference.setValue(null);
+                        Intent intent = new Intent(Initialization.this, Initialization.class);
+                        startActivity(intent);
+                        finish();
+                    }
 
 
                     //additions to local library

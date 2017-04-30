@@ -24,6 +24,7 @@ import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -44,19 +45,19 @@ public class MainMenu extends AppCompatActivity {
     public static final String DISABLE_SKIP = "Disable skip. ";
     public static final String ENABLE_SKIP = "Enable skip. ";
     public static final String SET_LIKE = "Set like. ";
-    LocalBroadcastManager bManager;
-    TextView speed;
-    TextView titleT;
-    TextView artistT;
-    ImageView artwork;
-    ImageView like;
-    ImageView skip;
-    ImageView playpause;
-    Button startWorkout;
-    ProgressBar progressBar;
-    ProgressBar trackProgressBar;
-    RelativeLayout workoutBar;
-    Context context;
+    private LocalBroadcastManager bManager;
+    private TextView speed;
+    private TextView titleT;
+    private TextView artistT;
+    private ImageView artwork;
+    private ImageView like;
+    private ImageView skip;
+    private ImageView playpause;
+    private Button startWorkout;
+    private ProgressBar progressBar;
+    private ProgressBar trackProgressBar;
+    private RelativeLayout workoutBar;
+    private Context context;
     private TabLayout tabLayout;
     private ViewPager viewPager;
     private BroadcastReceiver bReceiver = new BroadcastReceiver() {
@@ -243,16 +244,14 @@ public class MainMenu extends AppCompatActivity {
                     Intent RTReturn = new Intent(MusicService.COOLDOWN);
                     LocalBroadcastManager.getInstance(context).sendBroadcast(RTReturn);
 
-                    playpause.setImageResource(android.R.drawable.ic_media_play);
-                    playpause.setTag("play");
+                    playpause.setImageResource(android.R.drawable.ic_media_pause);
+                    playpause.setTag("pause");
 
                     startWorkout.setTag("start");
                     startWorkout.setText("Cooling down...");
 
                     startWorkout.setEnabled(false);
                     skip.setClickable(false);
-                    like.setClickable(false);
-                    playpause.setClickable(false);
                 }
             }
         });
@@ -261,6 +260,9 @@ public class MainMenu extends AppCompatActivity {
         skip.setClickable(false);
         like.setClickable(false);
         playpause.setClickable(false);
+
+        Toast.makeText(MainMenu.this, "Please wait while RNNR initializes...",
+                Toast.LENGTH_LONG).show();
     }
 
     @Override
