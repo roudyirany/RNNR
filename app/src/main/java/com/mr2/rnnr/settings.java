@@ -44,6 +44,7 @@ public class settings extends Fragment{
         calibrate.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                getActivity().stopService(new Intent(getActivity(),MusicService.class));
                 Intent intent = new Intent(getActivity(), Calibration.class);
                 startActivity(intent);
                 getActivity().finish();

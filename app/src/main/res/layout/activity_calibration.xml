@@ -10,16 +10,6 @@
     android:paddingTop="@dimen/activity_vertical_margin"
     tools:context="com.mr2.rnnr.Calibration">
 
-    <TextView
-        android:text="Please traverse 50 meters outside."
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_below="@+id/activityType"
-        android:layout_centerHorizontal="true"
-        android:layout_marginTop="11dp"
-        android:id="@+id/textView10"
-        android:fontFamily="sans-serif-thin" />
-
     <Button
         android:text="start walking"
         android:layout_width="wrap_content"
@@ -31,7 +21,16 @@
         android:backgroundTint="@android:color/holo_orange_dark"/>
 
     <TextView
-        android:text="0/50m"
+        android:text="Walking"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:id="@+id/activityType"
+        android:textSize="30sp"
+        android:fontFamily="sans-serif-thin"
+        android:layout_centerHorizontal="true" />
+
+    <TextView
+        android:text="0/100m"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:id="@+id/distance"
@@ -41,11 +40,12 @@
         android:layout_centerHorizontal="true" />
 
     <TextView
-        android:text="Walking"
+        android:text="Please traverse 100 meters outside."
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:id="@+id/activityType"
-        android:textSize="30sp"
+        android:layout_marginTop="13dp"
+        android:id="@+id/textView10"
         android:fontFamily="sans-serif-thin"
+        android:layout_below="@+id/activityType"
         android:layout_centerHorizontal="true" />
 </RelativeLayout>

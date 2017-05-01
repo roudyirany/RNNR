@@ -11,6 +11,7 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -21,6 +22,8 @@ import com.google.firebase.auth.FirebaseUser;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 
+import java.text.DecimalFormat;
+
 public class Calibration extends AppCompatActivity implements SensorEventListener {
 
     private SensorManager sensorManager;
@@ -29,9 +32,10 @@ public class Calibration extends AppCompatActivity implements SensorEventListene
     private TextView distance;
     private TextView activity;
     protected LocationManager locationManager;
+    private boolean locationStarted = false;
 
-    private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 1; // in Meters
-    private static final long MINIMUM_TIME_BETWEEN_UPDATES = 1000; //in milliseconds
+    private static final long MINIMUM_DISTANCE_CHANGE_FOR_UPDATES = 5; // in Meters
+    private static final long MINIMUM_TIME_BETWEEN_UPDATES = 2000; //in milliseconds
 
     double clat,clon,dis;
 
@@ -64,21 +68,9 @@ public class Calibration extends AppCompatActivity implements SensorEventListene
         startCalib.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-
-                if(location != null){
-                    steps = 0;
-                    dis = 0.0;
-                    startCalib.setEnabled(false);
-
-                    clat = location.getLatitude();
-                    clon = location.getLongitude();
-                }
-
-                else{
-                    Toast.makeText(Calibration.this, "Please turn on location services and go outside.",
-                            Toast.LENGTH_LONG).show();
-                }
+                steps = 0;
+                dis = 0.0;
+                startCalib.setEnabled(false);
             }
         });
 
@@ -90,7 +82,7 @@ public class Calibration extends AppCompatActivity implements SensorEventListene
     protected void onResume(){
         super.onResume();
 
-        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_COUNTER);
+        Sensor countSensor = sensorManager.getDefaultSensor(Sensor.TYPE_STEP_DETECTOR);
         sensorManager.registerListener(this, countSensor, SensorManager.SENSOR_DELAY_UI);
     }
 
@@ -104,7 +96,7 @@ public class Calibration extends AppCompatActivity implements SensorEventListene
     @Override
     public void onSensorChanged(SensorEvent event) {
         Sensor mySensor = event.sensor;
-        if (mySensor.getType() == Sensor.TYPE_STEP_COUNTER)
+        if (mySensor.getType() == Sensor.TYPE_STEP_DETECTOR && !startCalib.isEnabled() && locationStarted)
             steps++;
     }
 
@@ -117,24 +109,40 @@ public class Calibration extends AppCompatActivity implements SensorEventListene
 
         public void onLocationChanged(Location location) {
             if(!startCalib.isEnabled()) {
-                dis = dis + getDistance(clat, clon, location.getLatitude(), location.getLongitude());
-                clat = location.getLatitude();
-                clon = location.getLongitude();
-                distance.setText(Math.round(dis) + "/50m");
 
-                if (dis >= 50.0) {
-                    double stepSize = dis / (double) steps;
-                    if (startCalib.getText().toString().equals("start walking")) {
-                        mFirebaseDatabaseReference.child("walking").setValue(stepSize);
-                        startCalib.setText("start running");
-                        startCalib.setEnabled(true);
-                        activity.setText("Running");
-                        distance.setText("0/50m");
-                    } else {
-                        mFirebaseDatabaseReference.child("running").setValue(stepSize);
-                        Intent intent = new Intent(Calibration.this, MainMenu.class);
-                        startActivity(intent);
-                        finish();
+                if(!locationStarted){
+                    locationStarted = true;
+                    clat = location.getLatitude();
+                    clon = location.getLongitude();
+                }
+
+                else {
+                    DecimalFormat df = new DecimalFormat("####0.0");
+
+                    Location a = new Location("");
+                    a.setLongitude(clon);
+                    a.setLatitude(clat);
+
+                    dis = dis + (double) a.distanceTo(location);
+                    clat = location.getLatitude();
+                    clon = location.getLongitude();
+                    distance.setText(df.format(dis) + "/100m");
+
+                    if (dis >= 100.0) {
+                        double stepSize = dis / (double) steps;
+                        if (startCalib.getText().toString().equals("start walking")) {
+                            mFirebaseDatabaseReference.child("walking").setValue(stepSize);
+                            startCalib.setText("start running");
+                            startCalib.setEnabled(true);
+                            activity.setText("Running");
+                            distance.setText("0/100m");
+                            locationStarted = false;
+                        } else {
+                            mFirebaseDatabaseReference.child("running").setValue(stepSize);
+                            Intent intent = new Intent(Calibration.this, MainMenu.class);
+                            startActivity(intent);
+                            finish();
+                        }
                     }
                 }
             }
@@ -152,20 +160,6 @@ public class Calibration extends AppCompatActivity implements SensorEventListene
 
         public void onProviderEnabled(String s) {
         }
-
-    }
-
-    public double getDistance(double lat1, double lon1, double lat2, double lon2) {
-
-        double latA = Math.toRadians(lat1);
-        double lonA = Math.toRadians(lon1);
-        double latB = Math.toRadians(lat2);
-        double lonB = Math.toRadians(lon2);
-        double cosAng = (Math.cos(latA) * Math.cos(latB) * Math.cos(lonB-lonA)) +
-                (Math.sin(latA) * Math.sin(latB));
-        double ang = Math.acos(cosAng);
-        double dist = ang *6371;
-        return dist;
 
     }
 

@@ -90,7 +90,7 @@ public class Initialization extends AppCompatActivity {
             return;
         }
 
-        //FirebaseDatabase.getInstance().setPersistenceEnabled(true);
+        FirebaseDatabase.getInstance().setPersistenceEnabled(true);
         mFirebaseDatabaseReference = FirebaseDatabase.getInstance().getReference().child("users/" + mFirebaseUser.getUid());
         mFirebaseDatabaseReference.keepSynced(true);
 
